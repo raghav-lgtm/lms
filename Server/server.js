@@ -4,8 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth-routes/index");
 
-const instructorRoutes = require("./routes/instructor-routes/index");
-
+const instructorRoutes = require("./routes/instructor-routes/media-routes");
 const courseRoutes = require("./routes/instructor-routes/course-routes");
 
 const app = express();
@@ -38,7 +37,7 @@ app.use("/auth", authRoutes);
 
 app.use("/media", instructorRoutes);
 
-app.use("instructor/course", courseRoutes);
+app.use("/instructor/course", courseRoutes);
 
 app.use((error, req, res, next) => {
   console.error(error.stack);

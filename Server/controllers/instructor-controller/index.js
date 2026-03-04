@@ -1,96 +1,102 @@
-const {
-  uploadMediaToCloudinary,
-  deleteMediaFromCloudinary,
-} = require("../../helper/cloudinary");
-
-const fs = require("fs");
-
-const uploadMedia = async (req, res) => {
-  console.log("req.file:", req.file);
-  console.log("req.body:", req.body);
-
+const Course = require("../../models/Course");
+const addCourse = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file provided",
-      });
-    }
+    const courseDetails = req.body;
 
-    const filePath = req.file.path;
+    const newCourse = new Course(courseDetails);
+    const savedCourse = await newCourse.save();
 
-    const response = await uploadMediaToCloudinary(filePath);
-
-    if (!response) {
-      return res.status(500).json({
-        success: false,
-        message: "Upload to Cloudinary failed",
-      });
-    }
-
-    fs.unlinkSync(filePath);
-
-    return res.status(200).json({
+    res.status(201).json({
       success: true,
-      message: "Media uploaded successfully",
-      data: {
-        url: response.secure_url,
-        public_id: response.public_id,
-      },
+      message: "Course successfully added",
+      data: savedCourse,
     });
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
-
-    // optional cleanup
-    if (req.file?.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
-    return res.status(500).json({
+    console.error(error);
+    res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Failed to add course",
     });
   }
 };
 
-const deleteMedia = async (req, res) => {
+const getAllCourses = async (req, res) => {
+  try {
+    const { instructorId } = req.params;
+    const allCourses = await Course.find({ instructor_id: instructorId });
+
+    res.status(200).json({
+      success: true,
+      data: allCourses,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch courses",
+    });
+  }
+};
+
+const getCourseDetailsById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({
+    const courseDetails = await Course.findById(id);
+
+    if (!courseDetails) {
+      return res.status(404).json({
         success: false,
-        message: "Public ID is required",
+        message: "Course not found",
       });
     }
 
-    const result = await deleteMediaFromCloudinary(id);
-
-    if (!result || result.result !== "ok") {
-      return res.status(500).json({
-        success: false,
-        message: "Delete from Cloudinary failed",
-      });
-    }
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: "Media deleted successfully",
-      data: {
-        public_id: id,
-      },
+      data: courseDetails,
     });
   } catch (error) {
-    console.error("Cloudinary delete error:", error);
-
-    return res.status(500).json({
+    console.error(error);
+    res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Failed to fetch course",
+    });
+  }
+};
+
+const updateCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newCourseDetails = req.body;
+
+    const updatedCourse = await Course.findByIdAndUpdate(id, newCourseDetails, {
+      new: true,
+    });
+
+    if (!updatedCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Course updated successfully",
+      data: updatedCourse,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update course",
     });
   }
 };
 
 module.exports = {
-  uploadMedia,
-  deleteMedia,
+  addCourse,
+  getAllCourses,
+  getCourseDetailsById,
+  updateCourseById,
 };
