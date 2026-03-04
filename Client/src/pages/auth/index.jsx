@@ -13,12 +13,12 @@ import {
   initialSignInFormData,
   initialSignUpFormData,
 } from "@/config";
-import { registrationServices } from "@/services/registration";
+import { registrationServices } from "@/services/loginservices/index";
 import { GraduationCap } from "lucide-react";
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/auth-context";
-import { loginServices } from "@/services/login";
+import { loginServices } from "@/services/loginservices/index";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("signin");

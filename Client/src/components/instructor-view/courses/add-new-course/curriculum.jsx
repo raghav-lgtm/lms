@@ -7,9 +7,9 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, GripVertical, RefreshCw } from "lucide-react";
 import { InstructorContext } from "@/context/instructor-context";
-import { deleteMedia } from "@/services/deleteMedia";
+import { deleteMedia } from "@/services/mediahandle/index";
 import VideoPlayer from "../../video-player";
-import { uploadMedia } from "@/services/upload";
+import { uploadMedia } from "@/services/mediahandle/index";
 import MediaProgressbar from "@/components/media-progress-bar/index";
 
 function CourseCurriculum() {
