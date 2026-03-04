@@ -16,9 +16,10 @@ function InstructorCourses({ listOfCourses }) {
   const navigate = useNavigate();
 
   function addnewcourse() {
-    // Fixed: removed "instructor/" prefix since you're already on /instructor
     navigate("/instructor/create-new-course");
   }
+
+  console.log("listofCourses", listOfCourses);
 
   return (
     <div>
@@ -43,16 +44,26 @@ function InstructorCourses({ listOfCourses }) {
               <TableBody>
                 {listOfCourses && listOfCourses.length > 0 ? (
                   listOfCourses.map((course, index) => (
-                    <TableRow key={`${course.title}-${index}`}>
+                    <TableRow key={`${course._id || course.title}-${index}`}>
                       <TableCell className="font-medium">
                         {course?.title}
                       </TableCell>
-                      <TableCell>{course?.students?.length}</TableCell>
+                      <TableCell>{course?.students?.length ?? 0}</TableCell>
                       <TableCell>
-                        ${course?.students?.length * course?.pricing}
+                        $
+                        {(
+                          (course?.students?.length ?? 0) *
+                          (course?.pricing ?? 0)
+                        ).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/instructor/edit-course/${course?._id}`)
+                          }
+                        >
                           <Edit className="h-6 w-6" />
                         </Button>
                         <Button variant="ghost" size="sm">

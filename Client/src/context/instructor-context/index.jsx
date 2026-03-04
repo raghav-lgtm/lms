@@ -10,12 +10,11 @@ export function InstructorProvider({ children }) {
   const [courseLandingInitials, setCourseLandingInitials] = useState(
     courseLandingInitialFormData,
   );
-
   const [courseCurriculamFormData, setCourseCurriculamFormData] = useState(
     courseCurriculumInitialFormData,
   );
-
   const [mediaUploadProgress, setMediaUploadProgress] = useState(false);
+  const [InstructorCoursesList, setInstructorCoursesList] = useState([]);
 
   return (
     <InstructorContext.Provider
@@ -26,6 +25,8 @@ export function InstructorProvider({ children }) {
         setCourseCurriculamFormData,
         mediaUploadProgress,
         setMediaUploadProgress,
+        InstructorCoursesList,
+        setInstructorCoursesList,
       }}
     >
       {children}

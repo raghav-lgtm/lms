@@ -2,9 +2,7 @@ import { axiosInstance } from "@/api/axiosInatance";
 
 export const deleteMedia = async (publicId) => {
   if (!publicId) return;
-
   const res = await axiosInstance.delete(`/media/delete/${publicId}`);
-
   return res.data;
 };
 
@@ -17,3 +15,29 @@ export const uploadMedia = async (videoData) => {
   console.log(res, "response");
   return res.data;
 };
+
+export async function fetchInstructorCourseListService(id) {
+  const res = await axiosInstance.get(`/instructor/course/getAllCourses/${id}`);
+  return res.data;
+}
+
+export async function addNewCourseService(formData) {
+  const res = await axiosInstance.post(
+    `/instructor/course/addCourse`,
+    formData,
+  );
+  return res.data;
+}
+
+export async function fetchInstructorCourseDetailsService(id) {
+  const res = await axiosInstance.get(`/instructor/course/getCourse/${id}`);
+  return res.data;
+}
+
+export async function updateCourseById(id, formData) {
+  const res = await axiosInstance.put(
+    `/instructor/course/updateCourse/${id}`,
+    formData,
+  );
+  return res.data;
+}

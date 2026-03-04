@@ -1,21 +1,28 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BarChart, Book, LogOut } from "lucide-react";
 import { AuthContext } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
-import InstructorDashboard from "@/components/instructor-view/dashboard/index"; // Import your components
+import InstructorDashboard from "@/components/instructor-view/dashboard/index";
 import InstructorCourses from "../../components/instructor-view/courses/index";
+import { InstructorContext } from "@/context/instructor-context";
+import { fetchInstructorCourseListService } from "@/services/mediahandle";
 
 function InstructorDashboardPage() {
-  const { logout } = useContext(AuthContext);
+  const { logout, auth } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { setInstructorCoursesList, InstructorCoursesList } =
+    useContext(InstructorContext);
 
-  const listOfCourses = [
-    {
-      title: "raghav course",
-      students: ["raghav", "chintu", "mintu", "bunty"],
-      pricing: "100",
-    },
-  ];
+  async function fetchAllCourses() {
+    console.log("auth_id", auth?.user?.id);
+    const response = await fetchInstructorCourseListService(auth?.user?.id);
+    console.log("response", response);
+    if (response?.success) setInstructorCoursesList(response?.data);
+  }
+
+  useEffect(() => {
+    fetchAllCourses();
+  });
 
   const menuItems = [
     {
@@ -28,7 +35,7 @@ function InstructorDashboardPage() {
       icon: Book,
       label: "Courses",
       value: "courses",
-      component: <InstructorCourses listOfCourses={listOfCourses} />,
+      component: <InstructorCourses listOfCourses={InstructorCoursesList} />,
     },
     {
       icon: LogOut,
@@ -45,7 +52,6 @@ function InstructorDashboardPage() {
 
   return (
     <div className="flex h-full min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md ">
         <div className="p-4">
           <h2 className="text-2xl font-bold mb-4">Instructor View</h2>
@@ -68,8 +74,6 @@ function InstructorDashboardPage() {
           </nav>
         </div>
       </aside>
-
-      {/* Main Content Area */}
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           {menuItems.find((item) => item.value === activeTab)?.component}
