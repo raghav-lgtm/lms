@@ -26,6 +26,10 @@ function App() {
       />
       {/*add page */}
       <Route path="/instructor/create-new-course" element={<AddNewCourse />} />
+      <Route
+        path="/instructor/edit-course/:courseId"
+        element={<RouteGuard element={<AddNewCourse />} />}
+      />
 
       <Route path="" element={<StudentHomePage />} />
       <Route path="home" element={<StudentHomePage />} />

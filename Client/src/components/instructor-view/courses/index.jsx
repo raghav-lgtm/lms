@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,25 +11,62 @@ import {
 import { Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { InstructorContext } from "@/context/instructor-context";
+import {
+  courseLandingInitialFormData,
+  courseCurriculumInitialFormData,
+} from "@/config";
+import { deleteCourseById } from "@/services/mediahandle";
 
-function InstructorCourses({ listOfCourses }) {
+function InstructorCourses({ listOfCourses, refreshCourses }) {
   const navigate = useNavigate();
 
-  function addnewcourse() {
+  const { setCourseLandingInitials, setCourseCurriculamFormData } =
+    useContext(InstructorContext);
+
+  // Create new course
+  function handleAddCourse() {
+    setCourseLandingInitials(courseLandingInitialFormData);
+    setCourseCurriculamFormData(courseCurriculumInitialFormData);
     navigate("/instructor/create-new-course");
   }
 
-  console.log("listofCourses", listOfCourses);
+  // Edit course — just navigate, AddNewCourse will fetch the data itself
+  function handleEdit(id) {
+    navigate(`/instructor/edit-course/${id}`);
+  }
+
+  // Delete course
+  async function handleDelete(id) {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this course?",
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const response = await deleteCourseById(id);
+
+      if (response?.success) {
+        alert("Course deleted successfully");
+        if (refreshCourses) refreshCourses();
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  }
 
   return (
     <div>
       <Card>
         <CardHeader className="flex justify-between flex-row items-center">
           <CardTitle className="text-3xl font-extrabold">All Courses</CardTitle>
-          <Button className="p-6" onClick={addnewcourse}>
+
+          <Button className="p-6" onClick={handleAddCourse}>
             Create New Course
           </Button>
         </CardHeader>
+
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
@@ -41,14 +78,17 @@ function InstructorCourses({ listOfCourses }) {
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
-                {listOfCourses && listOfCourses.length > 0 ? (
-                  listOfCourses.map((course, index) => (
-                    <TableRow key={`${course._id || course.title}-${index}`}>
+                {listOfCourses?.length > 0 ? (
+                  listOfCourses.map((course) => (
+                    <TableRow key={course._id}>
                       <TableCell className="font-medium">
-                        {course?.title}
+                        {course.title}
                       </TableCell>
+
                       <TableCell>{course?.students?.length ?? 0}</TableCell>
+
                       <TableCell>
                         $
                         {(
@@ -56,18 +96,28 @@ function InstructorCourses({ listOfCourses }) {
                           (course?.pricing ?? 0)
                         ).toFixed(2)}
                       </TableCell>
+
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            navigate(`/instructor/edit-course/${course?._id}`)
-                          }
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 mr-2"
+                          onClick={() => handleEdit(course._id)}
                         >
-                          <Edit className="h-6 w-6" />
+                          <Edit className="h-5 w-5" />
+                          <span className="ml-1 text-xs font-medium">Edit</span>
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-6 w-6" />
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(course._id)}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                          <span className="ml-1 text-xs font-medium">
+                            Delete
+                          </span>
                         </Button>
                       </TableCell>
                     </TableRow>

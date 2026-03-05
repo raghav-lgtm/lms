@@ -41,3 +41,10 @@ export async function updateCourseById(id, formData) {
   );
   return res.data;
 }
+
+export async function deleteCourseById(id) {
+  const res = await axiosInstance.delete(
+    `/instructor/course/deleteCourse/${id}`,
+  );
+  return res.data;
+}

@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,74 +7,158 @@ import CourseCurriculum from "@/components/instructor-view/courses/add-new-cours
 import CourseLanding from "@/components/instructor-view/courses/add-new-course/course-landing";
 import CourseSetting from "@/components/instructor-view/courses/add-new-course/course-setting";
 import { AuthContext } from "@/context/auth-context";
-import { useNavigate } from "react-router-dom";
-import { addNewCourseService } from "@/services/mediahandle";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  addNewCourseService,
+  updateCourseById,
+  fetchInstructorCourseDetailsService,
+} from "@/services/mediahandle";
+import { courseCurriculumInitialFormData } from "@/config";
+
+const isEmpty = (value) =>
+  value === "" || value === undefined || value === null;
 
 function AddNewCourse() {
-  const { courseLandingInitials, courseCurriculamFormData } =
-    useContext(InstructorContext);
+  const {
+    courseLandingInitials,
+    courseCurriculamFormData,
+    setCourseLandingInitials,
+    setCourseCurriculamFormData,
+  } = useContext(InstructorContext);
+
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { courseId } = useParams();
+  const { pathname } = useLocation();
 
-  const isEmpty = (value) =>
-    value === "" || value === undefined || value === null;
+  const isEditMode = pathname.includes("edit-course");
+
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(false);
+
+  // Fetch course details on edit mode (handles page reload)
+  useEffect(() => {
+    if (!isEditMode || !courseId) return;
+
+    async function loadCourse() {
+      try {
+        setFetchLoading(true);
+        const response = await fetchInstructorCourseDetailsService(courseId);
+
+        if (response?.success) {
+          const data = response.data;
+
+          setCourseLandingInitials({
+            title: data.title || "",
+            category: data.category || "",
+            level: data.level || "",
+            primaryLanguage: data.primaryLanguage || "",
+            subtitle: data.subtitle || "",
+            description: data.description || "",
+            pricing: data.pricing || "",
+            objectives: data.objectives || "",
+            welcomeMessage: data.welcomeMessage || "",
+            image: data.image || "",
+          });
+
+          setCourseCurriculamFormData(
+            data.curriculam?.length
+              ? data.curriculam.map((item) => ({
+                  title: item.title || "",
+                  videoUrl: item.videoUrl || "",
+                  freePreview: item.freePreview || false,
+                  public_id: item.public_id || "",
+                }))
+              : courseCurriculumInitialFormData,
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load course for editing:", error);
+      } finally {
+        setFetchLoading(false);
+      }
+    }
+
+    loadCourse();
+  }, [courseId, isEditMode]);
 
   const isValid = useMemo(() => {
     const landingValid = Object.values(courseLandingInitials || {}).every(
       (value) => !isEmpty(value),
     );
     if (!landingValid) return false;
+
     if (
       !Array.isArray(courseCurriculamFormData) ||
       courseCurriculamFormData.length === 0
     )
       return false;
+
     let hasFreePreview = false;
-    for (let item of courseCurriculamFormData) {
+    for (const item of courseCurriculamFormData) {
       if (
         isEmpty(item.title) ||
         isEmpty(item.videoUrl) ||
         isEmpty(item.public_id)
-      ) {
+      )
         return false;
-      }
-      if (item.freePreview) {
-        hasFreePreview = true;
-      }
+      if (item.freePreview) hasFreePreview = true;
     }
-    if (!hasFreePreview) return false;
-    return true;
+
+    return hasFreePreview;
   }, [courseLandingInitials, courseCurriculamFormData]);
 
-  async function handleCreateCourse() {
-    const newCourseMetaData = {
-      instructor_id: auth?.user?.id,
-      instructor_name: auth?.user?.userName,
-      date: new Date(),
-      ...courseLandingInitials,
-      students: [],
-      curriculam: courseCurriculamFormData,
-      isPublished: true,
-    };
+  async function handleSubmit() {
+    try {
+      setSubmitLoading(true);
 
-    const response = await addNewCourseService(newCourseMetaData);
-    if (response?.success) {
-      navigate(-1);
+      const courseData = {
+        instructor_id: auth?.user?.id,
+        instructor_name: auth?.user?.userName,
+        date: new Date(),
+        ...courseLandingInitials,
+        students: [],
+        curriculam: courseCurriculamFormData,
+        isPublished: true,
+      };
+
+      const response =
+        isEditMode && courseId
+          ? await updateCourseById(courseId, courseData)
+          : await addNewCourseService(courseData);
+
+      if (response?.success) navigate(-1);
+    } catch (e) {
+      console.error(`Failed to ${isEditMode ? "update" : "create"} course:`, e);
+    } finally {
+      setSubmitLoading(false);
     }
+  }
+
+  if (fetchLoading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        Loading course details...
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between">
-        <h1 className="text-3xl font-extrabold mb-5">Create a new course</h1>
+      <div className="flex justify-between items-center mb-5">
+        <h1 className="text-3xl font-extrabold">
+          {isEditMode ? "Edit Course" : "Create a New Course"}
+        </h1>
+
         <Button
           className="text-sm tracking-wider font-bold px-8"
-          disabled={!isValid}
-          onClick={handleCreateCourse}
+          disabled={!isValid || submitLoading}
+          onClick={handleSubmit}
         >
-          SUBMIT
+          {submitLoading ? "Please wait..." : isEditMode ? "UPDATE" : "SUBMIT"}
         </Button>
       </div>
+
       <Card>
         <CardContent>
           <div className="container mx-auto p-4">
@@ -86,12 +170,15 @@ function AddNewCourse() {
                 </TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
+
               <TabsContent value="curriculum">
                 <CourseCurriculum />
               </TabsContent>
+
               <TabsContent value="course-landing-page">
                 <CourseLanding />
               </TabsContent>
+
               <TabsContent value="settings">
                 <CourseSetting />
               </TabsContent>

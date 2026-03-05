@@ -7,9 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, GripVertical, RefreshCw } from "lucide-react";
 import { InstructorContext } from "@/context/instructor-context";
-import { deleteMedia } from "@/services/mediahandle/index";
+import { deleteMedia, uploadMedia } from "@/services/mediahandle/index";
 import VideoPlayer from "../../video-player";
-import { uploadMedia } from "@/services/mediahandle/index";
 import MediaProgressbar from "@/components/media-progress-bar/index";
 
 function CourseCurriculum() {
@@ -22,70 +21,68 @@ function CourseCurriculum() {
 
   const fileInputRefs = useRef([]);
 
-  const handleSubmit = () => {
-    console.log("Course curriculum submitted!");
-  };
-
   function addLecture() {
     setCourseCurriculamFormData([
       ...courseCurriculamFormData,
-      {
-        ...courseCurriculumInitialFormData[0],
-      },
+      { ...courseCurriculumInitialFormData[0] },
     ]);
-    console.log("courseCurriculamFormData", courseCurriculamFormData);
   }
 
   function deleteLecture(index) {
-    const updatedData = courseCurriculamFormData.filter((_, i) => i !== index);
-    setCourseCurriculamFormData(updatedData);
+    setCourseCurriculamFormData(
+      courseCurriculamFormData.filter((_, i) => i !== index),
+    );
   }
 
   function handleTitleChange(event, index) {
-    let cpycoursedata = [...courseCurriculamFormData];
-    cpycoursedata[index] = {
-      ...cpycoursedata[index],
-      title: event.target.value,
-    };
-    setCourseCurriculamFormData(cpycoursedata);
+    const updated = [...courseCurriculamFormData];
+    updated[index] = { ...updated[index], title: event.target.value };
+    setCourseCurriculamFormData(updated);
   }
 
-  function handlePreviewChange(event, index) {
-    let cpycoursedata1 = [...courseCurriculamFormData];
-    cpycoursedata1[index] = {
-      ...cpycoursedata1[index],
-      freePreview: event,
-    };
-    setCourseCurriculamFormData(cpycoursedata1);
+  function handlePreviewChange(value, index) {
+    const updated = [...courseCurriculamFormData];
+    updated[index] = { ...updated[index], freePreview: value };
+    setCourseCurriculamFormData(updated);
   }
 
+  // Handles both fresh upload and replace (deletes old video first if exists)
   async function handleSingleLectureUpload(event, index) {
-    const filePath = event.target.files[0];
-    if (!filePath) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-    setMediaUploadProgress(true);
-
-    const videoData = new FormData();
-    videoData.append("file", filePath);
+    const existingPublicId = courseCurriculamFormData[index]?.public_id;
 
     try {
+      setMediaUploadProgress(true);
+
+      // Delete old video from Cloudinary before uploading new one
+      if (existingPublicId) {
+        await deleteMedia(existingPublicId);
+      }
+
+      const videoData = new FormData();
+      videoData.append("file", file);
+
       const response = await uploadMedia(videoData);
 
       if (response?.data) {
-        const updatedData = [...courseCurriculamFormData];
-
-        updatedData[index] = {
-          ...updatedData[index],
+        const updated = [...courseCurriculamFormData];
+        updated[index] = {
+          ...updated[index],
           public_id: response.data.public_id,
           videoUrl: response.data.url,
         };
-
-        setCourseCurriculamFormData(updatedData);
+        setCourseCurriculamFormData(updated);
       }
     } catch (error) {
       console.error("Video upload failed:", error);
     } finally {
       setMediaUploadProgress(false);
+      // Reset file input so the same file can be re-selected if needed
+      if (fileInputRefs.current[index]) {
+        fileInputRefs.current[index].value = "";
+      }
     }
   }
 
@@ -95,21 +92,13 @@ function CourseCurriculum() {
 
     try {
       setMediaUploadProgress(true);
-
       const response = await deleteMedia(lecture.public_id);
 
       if (response?.success) {
-        const updatedData = [...courseCurriculamFormData];
+        const updated = [...courseCurriculamFormData];
+        updated[index] = { ...updated[index], public_id: "", videoUrl: "" };
+        setCourseCurriculamFormData(updated);
 
-        updatedData[index] = {
-          ...updatedData[index],
-          public_id: "",
-          videoUrl: "",
-        };
-
-        setCourseCurriculamFormData(updatedData);
-
-        // clear file input
         if (fileInputRefs.current[index]) {
           fileInputRefs.current[index].value = "";
         }
@@ -132,16 +121,16 @@ function CourseCurriculum() {
             <p className="text-sm text-muted-foreground mt-1">
               Build your course content lecture by lecture
             </p>
-
-            {mediaUploadProgress ? (
+            {mediaUploadProgress && (
               <MediaProgressbar isMediaUploading={mediaUploadProgress} />
-            ) : null}
+            )}
           </div>
           <Button onClick={addLecture}>
             <Upload className="mr-2 h-4 w-4" />
             Add Lecture
           </Button>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {courseCurriculamFormData.map((course, index) => (
             <Card key={index} className="border-2">
@@ -152,9 +141,7 @@ function CourseCurriculum() {
                     <Label>Lecture {index + 1}</Label>
                     <Input
                       placeholder="Enter lecture title"
-                      onChange={(event) => {
-                        handleTitleChange(event, index);
-                      }}
+                      onChange={(event) => handleTitleChange(event, index)}
                       value={course.title}
                       className="mt-2"
                     />
@@ -170,39 +157,46 @@ function CourseCurriculum() {
                   </Button>
                 </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
-                {course?.videoUrl ? (
-                  <div>
-                    <VideoPlayer videoUrl={course.videoUrl} />
-                  </div>
-                ) : null}
+                {course?.videoUrl && <VideoPlayer videoUrl={course.videoUrl} />}
 
                 <div>
                   <Label>Upload Video</Label>
+
+                  {/* Hidden file input — triggered by both upload and replace */}
                   <Input
                     ref={(el) => (fileInputRefs.current[index] = el)}
                     type="file"
                     accept="video/*"
-                    onChange={(event) => {
-                      handleSingleLectureUpload(event, index);
-                    }}
+                    onChange={(event) =>
+                      handleSingleLectureUpload(event, index)
+                    }
                     className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                   />
 
                   {course.videoUrl && (
-                    <div className="mt-3 p-3 bg-muted rounded-md">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteVideo(index)}
-                          >
-                            <RefreshCw className="mr-2 h-3 w-3" />
-                            Replace
-                          </Button>
-                        </div>
-                      </div>
+                    <div className="mt-3 p-3 bg-muted rounded-md flex items-center justify-between gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={mediaUploadProgress}
+                        onClick={() => fileInputRefs.current[index]?.click()}
+                      >
+                        <RefreshCw className="mr-2 h-3 w-3" />
+                        Replace Video
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={mediaUploadProgress}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteVideo(index)}
+                      >
+                        <Trash2 className="mr-2 h-3 w-3" />
+                        Delete Video
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -210,15 +204,16 @@ function CourseCurriculum() {
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={course.freePreview}
-                    onCheckedChange={(event) => {
-                      handlePreviewChange(event, index);
-                    }}
+                    onCheckedChange={(value) =>
+                      handlePreviewChange(value, index)
+                    }
                   />
                   <Label>Free Preview</Label>
                 </div>
               </CardContent>
             </Card>
           ))}
+
           {courseCurriculamFormData.length === 0 && (
             <div className="text-center py-12">
               <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -234,10 +229,6 @@ function CourseCurriculum() {
           )}
         </CardContent>
       </Card>
-      <div className="flex justify-end gap-4">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={handleSubmit}>Save Curriculum</Button>
-      </div>
     </div>
   );
 }

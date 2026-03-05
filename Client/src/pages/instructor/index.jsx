@@ -14,9 +14,7 @@ function InstructorDashboardPage() {
     useContext(InstructorContext);
 
   async function fetchAllCourses() {
-    console.log("auth_id", auth?.user?.id);
     const response = await fetchInstructorCourseListService(auth?.user?.id);
-    console.log("response", response);
     if (response?.success) setInstructorCoursesList(response?.data);
   }
 
