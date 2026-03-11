@@ -1,13 +1,12 @@
-import { useContext } from "react";
 import { useLocation, Navigate } from "react-router-dom";
-import { AuthContext } from "@/context/auth-context";
+import useAuthStore from "@/store/useAuthStore";
 import { Skeleton } from "../ui/skeleton";
 
 function RouteGuard({ element }) {
   const { pathname } = useLocation();
-  const { auth, role, loading } = useContext(AuthContext);
+  const { token, loading, getRole } = useAuthStore();
+  const role = getRole();
 
-  // Show loading skeleton while checking auth
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -20,19 +19,16 @@ function RouteGuard({ element }) {
     );
   }
 
-  const isAuthenticated = !!auth?.token;
+  const isAuthenticated = !!token;
 
-  // Not logged in → redirect to auth
   if (!isAuthenticated && !pathname.startsWith("/auth")) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Logged in should not see auth pages
   if (isAuthenticated && pathname.startsWith("/auth")) {
     return <Navigate to="/home" replace />;
   }
 
-  // Instructor-only routes
   if (pathname.startsWith("/instructor") && role !== "instructor") {
     return <Navigate to="/home" replace />;
   }

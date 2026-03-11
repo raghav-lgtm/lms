@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,7 +11,7 @@ import {
 import { Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { InstructorContext } from "@/context/instructor-context";
+import useInstructorStore from "@/store/useInstructorStore";
 import {
   courseLandingInitialFormData,
   courseCurriculumInitialFormData,
@@ -20,23 +20,19 @@ import { deleteCourseById } from "@/services/mediahandle";
 
 function InstructorCourses({ listOfCourses, refreshCourses }) {
   const navigate = useNavigate();
-
   const { setCourseLandingInitials, setCourseCurriculamFormData } =
-    useContext(InstructorContext);
+    useInstructorStore();
 
-  // Create new course
   function handleAddCourse() {
     setCourseLandingInitials(courseLandingInitialFormData);
     setCourseCurriculamFormData(courseCurriculumInitialFormData);
     navigate("/instructor/create-new-course");
   }
 
-  // Edit course — just navigate, AddNewCourse will fetch the data itself
   function handleEdit(id) {
     navigate(`/instructor/edit-course/${id}`);
   }
 
-  // Delete course
   async function handleDelete(id) {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this course?",
@@ -61,7 +57,6 @@ function InstructorCourses({ listOfCourses, refreshCourses }) {
       <Card>
         <CardHeader className="flex justify-between flex-row items-center">
           <CardTitle className="text-3xl font-extrabold">All Courses</CardTitle>
-
           <Button className="p-6" onClick={handleAddCourse}>
             Create New Course
           </Button>

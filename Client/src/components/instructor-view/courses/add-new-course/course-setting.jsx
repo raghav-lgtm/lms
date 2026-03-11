@@ -1,13 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useContext } from "react";
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { uploadMedia } from "@/services/mediahandle/index";
-import { InstructorContext } from "@/context/instructor-context";
+import useInstructorStore from "@/store/useInstructorStore";
 
 function CourseSetting() {
   const { courseLandingInitials, setCourseLandingInitials } =
-    useContext(InstructorContext);
+    useInstructorStore();
+
   async function addImage(event) {
     const img_path = event.target.files?.[0];
     if (!img_path) return;
@@ -18,12 +19,10 @@ function CourseSetting() {
     try {
       const res = await uploadMedia(imgData);
       console.log("Upload success:", res);
-
       setCourseLandingInitials({
         ...courseLandingInitials,
         image: res.data.url,
       });
-
       console.log(res.data.url);
     } catch (error) {
       console.error("Upload failed:", error);
@@ -44,9 +43,7 @@ function CourseSetting() {
             <Input
               type="file"
               accept="image/*"
-              onChange={(event) => {
-                addImage(event);
-              }}
+              onChange={(event) => addImage(event)}
             />
           </div>
         )}

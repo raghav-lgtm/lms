@@ -1,20 +1,20 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BarChart, Book, LogOut } from "lucide-react";
-import { AuthContext } from "@/context/auth-context";
+import useAuthStore from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import InstructorDashboard from "@/components/instructor-view/dashboard/index";
 import InstructorCourses from "../../components/instructor-view/courses/index";
-import { InstructorContext } from "@/context/instructor-context";
+import useInstructorStore from "@/store/useInstructorStore";
 import { fetchInstructorCourseListService } from "@/services/mediahandle";
 
 function InstructorDashboardPage() {
-  const { logout, auth } = useContext(AuthContext);
+  const { logout, user } = useAuthStore();
   const [activeTab, setActiveTab] = useState("dashboard");
   const { setInstructorCoursesList, InstructorCoursesList } =
-    useContext(InstructorContext);
+    useInstructorStore();
 
   async function fetchAllCourses() {
-    const response = await fetchInstructorCourseListService(auth?.user?.id);
+    const response = await fetchInstructorCourseListService(user?.id);
     if (response?.success) setInstructorCoursesList(response?.data);
   }
 
@@ -50,7 +50,7 @@ function InstructorDashboardPage() {
 
   return (
     <div className="flex h-full min-h-screen bg-gray-100">
-      <aside className="w-64 bg-white shadow-md ">
+      <aside className="w-64 bg-white shadow-md">
         <div className="p-4">
           <h2 className="text-2xl font-bold mb-4">Instructor View</h2>
           <nav>

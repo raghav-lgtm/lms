@@ -1,12 +1,12 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InstructorContext } from "@/context/instructor-context";
+import useInstructorStore from "@/store/useInstructorStore";
 import CourseCurriculum from "@/components/instructor-view/courses/add-new-course/curriculum";
 import CourseLanding from "@/components/instructor-view/courses/add-new-course/course-landing";
 import CourseSetting from "@/components/instructor-view/courses/add-new-course/course-setting";
-import { AuthContext } from "@/context/auth-context";
+import useAuthStore from "@/store/useAuthStore";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   addNewCourseService,
@@ -24,9 +24,9 @@ function AddNewCourse() {
     courseCurriculamFormData,
     setCourseLandingInitials,
     setCourseCurriculamFormData,
-  } = useContext(InstructorContext);
+  } = useInstructorStore();
 
-  const { auth } = useContext(AuthContext);
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const { courseId } = useParams();
   const { pathname } = useLocation();
@@ -36,7 +36,6 @@ function AddNewCourse() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
 
-  // Fetch course details on edit mode (handles page reload)
   useEffect(() => {
     if (!isEditMode || !courseId) return;
 
@@ -113,8 +112,8 @@ function AddNewCourse() {
       setSubmitLoading(true);
 
       const courseData = {
-        instructor_id: auth?.user?.id,
-        instructor_name: auth?.user?.userName,
+        instructor_id: user?.id,
+        instructor_name: user?.userName,
         date: new Date(),
         ...courseLandingInitials,
         students: [],

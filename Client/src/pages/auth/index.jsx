@@ -15,9 +15,9 @@ import {
 } from "@/config";
 import { registrationServices } from "@/services/loginservices/index";
 import { GraduationCap } from "lucide-react";
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "@/context/auth-context";
+import useAuthStore from "@/store/useAuthStore";
 import { loginServices } from "@/services/loginservices/index";
 
 function AuthPage() {
@@ -25,8 +25,8 @@ function AuthPage() {
   const [signInFormData, setSignInFormData] = useState(initialSignInFormData);
   const [signUpFormData, setSignUpFormData] = useState(initialSignUpFormData);
 
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate(); // 🔥 redirect after login
+  const { login } = useAuthStore();
+  const navigate = useNavigate();
 
   function handleTabChange(value) {
     setActiveTab(value);
@@ -38,12 +38,10 @@ function AuthPage() {
     try {
       const res = await loginServices(signInFormData);
 
-      // ✅ Correct response handling
       if (res?.success) {
         const { user, accessToken } = res.data;
-
-        login(user, accessToken); // context handles localStorage
-        navigate("/"); // or /dashboard
+        login(user, accessToken);
+        navigate("/");
       } else {
         console.error("Login failed:", res?.message);
       }
@@ -101,7 +99,6 @@ function AuthPage() {
                 <CardTitle>Sign in to your account</CardTitle>
                 <CardDescription>Enter your email and password</CardDescription>
               </CardHeader>
-
               <CardContent>
                 <CommonForm
                   formControls={signInFormControls}
@@ -123,7 +120,6 @@ function AuthPage() {
                   Enter your details to get started
                 </CardDescription>
               </CardHeader>
-
               <CardContent>
                 <CommonForm
                   formControls={signUpFormControls}

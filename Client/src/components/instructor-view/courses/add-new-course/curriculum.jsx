@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useContext, useRef, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import { courseCurriculumInitialFormData } from "@/config/index";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, GripVertical, RefreshCw } from "lucide-react";
-import { InstructorContext } from "@/context/instructor-context";
+import useInstructorStore from "@/store/useInstructorStore";
 import { deleteMedia, uploadMedia } from "@/services/mediahandle/index";
 import VideoPlayer from "../../video-player";
 import MediaProgressbar from "@/components/media-progress-bar/index";
@@ -17,15 +17,13 @@ function CourseCurriculum() {
     setCourseCurriculamFormData,
     mediaUploadProgress,
     setMediaUploadProgress,
-  } = useContext(InstructorContext);
+  } = useInstructorStore();
 
-  // FIX #7: Per-lecture upload progress — track which lecture indices are uploading
   const [uploadingIndices, setUploadingIndices] = React.useState(new Set());
 
   const fileInputRefs = useRef([]);
   const bulkFileInputRef = useRef(null);
 
-  // Helper to mark a specific lecture index as uploading or done
   const setLectureUploading = useCallback((index, isUploading) => {
     setUploadingIndices((prev) => {
       const next = new Set(prev);
@@ -35,7 +33,6 @@ function CourseCurriculum() {
   }, []);
 
   function addLecture() {
-    // FIX #4: Assign a stable unique id to each new lecture
     setCourseCurriculamFormData([
       ...courseCurriculamFormData,
       { ...courseCurriculumInitialFormData[0], id: crypto.randomUUID() },
@@ -45,20 +42,17 @@ function CourseCurriculum() {
   async function deleteLecture(index) {
     const lecture = courseCurriculamFormData[index];
 
-    // If the lecture has a video, delete it from Cloudinary first
     if (lecture?.public_id) {
       try {
         setLectureUploading(index, true);
         await deleteMedia(lecture.public_id);
       } catch (error) {
         console.error("Failed to delete video from Cloudinary:", error);
-        // Still proceed with removing the lecture from UI even if Cloudinary fails
       } finally {
         setLectureUploading(index, false);
       }
     }
 
-    // FIX #6: Clean up stale ref when a lecture is removed
     fileInputRefs.current.splice(index, 1);
     setCourseCurriculamFormData(
       courseCurriculamFormData.filter((_, i) => i !== index),
@@ -77,7 +71,6 @@ function CourseCurriculum() {
     setCourseCurriculamFormData(updated);
   }
 
-  // FIX #8: Client-side file validation helper
   function validateVideoFile(file) {
     const MAX_SIZE_MB = 500;
     const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
@@ -93,12 +86,10 @@ function CourseCurriculum() {
     return true;
   }
 
-  // FIX #7: Uses per-lecture uploading state instead of global boolean
   async function handleSingleLectureUpload(event, index) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // FIX #8: Validate before uploading
     if (!validateVideoFile(file)) {
       if (fileInputRefs.current[index]) fileInputRefs.current[index].value = "";
       return;
@@ -140,7 +131,6 @@ function CourseCurriculum() {
     }
   }
 
-  // FIX #7: Uses per-lecture uploading state
   async function handleDeleteVideo(index) {
     const lecture = courseCurriculamFormData[index];
     if (!lecture?.public_id) return;
@@ -169,27 +159,20 @@ function CourseCurriculum() {
     }
   }
 
-  // FIX #1: Parallel uploads with Promise.all
-  // FIX #2: Per-file error handling — failed files are reported individually, others still succeed
-  // FIX #3: Progress counter shows X/N files uploaded
-  // FIX #8: Per-file validation before upload
   async function handleBulkUpload(event) {
     const files = Array.from(event.target.files);
     if (!files.length) return;
 
-    // FIX #8: Validate all files before starting any upload
     const validFiles = files.filter(validateVideoFile);
     if (!validFiles.length) {
       if (bulkFileInputRef.current) bulkFileInputRef.current.value = "";
       return;
     }
 
-    // FIX #3: Track per-file progress
     let completedCount = 0;
     const totalCount = validFiles.length;
     setMediaUploadProgress(true);
 
-    // FIX #1 + #2: Upload all files in parallel, handle each independently
     const results = await Promise.allSettled(
       validFiles.map(async (file) => {
         const videoData = new FormData();
@@ -197,14 +180,11 @@ function CourseCurriculum() {
 
         try {
           const response = await uploadMedia(videoData);
-
           completedCount++;
-          // FIX #3: Update a progress label (optional — wire to your progress bar if supported)
           console.log(`Bulk upload progress: ${completedCount}/${totalCount}`);
 
           if (response?.data) {
             return {
-              // FIX #4: Stable unique id for bulk-created lectures
               id: crypto.randomUUID(),
               title: file.name.replace(/\.[^/.]+$/, ""),
               videoUrl: response.data.url,
@@ -219,7 +199,6 @@ function CourseCurriculum() {
       }),
     );
 
-    // FIX #2: Separate successes from failures and report them
     const successfulLectures = [];
     const failedFiles = [];
 
@@ -250,7 +229,6 @@ function CourseCurriculum() {
     }
   }
 
-  // FIX #5: Drag-and-drop reordering logic
   const dragIndexRef = useRef(null);
 
   function handleDragStart(index) {
@@ -258,7 +236,7 @@ function CourseCurriculum() {
   }
 
   function handleDragOver(event) {
-    event.preventDefault(); // Required to allow drop
+    event.preventDefault();
   }
 
   function handleDrop(index) {
@@ -269,7 +247,6 @@ function CourseCurriculum() {
     const [moved] = updated.splice(fromIndex, 1);
     updated.splice(index, 0, moved);
 
-    // FIX #6: Also reorder the file input refs to stay in sync
     const movedRef = fileInputRefs.current.splice(fromIndex, 1)[0];
     fileInputRefs.current.splice(index, 0, movedRef);
 
@@ -314,20 +291,17 @@ function CourseCurriculum() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* FIX #4: Use lecture.id as key instead of array index */}
           {courseCurriculamFormData.map((course, index) => (
             <Card
               key={course.id}
               className="border-2"
               draggable
-              // FIX #5: Wire up drag-and-drop handlers
               onDragStart={() => handleDragStart(index)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(index)}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3">
-                  {/* FIX #5: Grip is now a real drag handle */}
                   <GripVertical
                     className="h-5 w-5 text-muted-foreground cursor-grab active:cursor-grabbing"
                     title="Drag to reorder"
@@ -358,7 +332,6 @@ function CourseCurriculum() {
 
                 <div>
                   <Label>Upload Video</Label>
-
                   <Input
                     ref={(el) => (fileInputRefs.current[index] = el)}
                     type="file"
@@ -374,7 +347,6 @@ function CourseCurriculum() {
                       <Button
                         variant="outline"
                         size="sm"
-                        // FIX #7: Only disable buttons for THIS lecture, not all
                         disabled={uploadingIndices.has(index)}
                         onClick={() => fileInputRefs.current[index]?.click()}
                       >
@@ -387,7 +359,6 @@ function CourseCurriculum() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        // FIX #7: Only disable buttons for THIS lecture
                         disabled={uploadingIndices.has(index)}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleDeleteVideo(index)}
