@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import AuthPage from "@/pages/auth";
 import InstructorDashboardPage from "./pages/instructor";
 import StudentHomePage from "./pages/student/home";
+import StudentCourseDetailsPage from "@/pages/student/course-details";
 import RouteGuard from "./components/route-guard";
 import NotFoundPage from "./pages/not-found";
 import AddNewCourse from "./pages/instructor/add-new-course";
@@ -10,10 +11,8 @@ import StudentViewCommonLayout from "@/components/student-view/common-layout";
 function App() {
   return (
     <Routes>
-      {/* Auth */}
       <Route path="/auth" element={<RouteGuard element={<AuthPage />} />} />
 
-      {/* Student Layout — all student routes go here */}
       <Route element={<StudentViewCommonLayout />}>
         <Route
           path="/"
@@ -23,10 +22,12 @@ function App() {
           path="/home"
           element={<RouteGuard element={<StudentHomePage />} />}
         />
-        {/* add other student routes here as you build them */}
+        <Route
+          path="/course/details/:courseId"
+          element={<RouteGuard element={<StudentCourseDetailsPage />} />}
+        />
       </Route>
 
-      {/* Instructor */}
       <Route
         path="/instructor"
         element={<RouteGuard element={<InstructorDashboardPage />} />}
@@ -40,7 +41,6 @@ function App() {
         element={<RouteGuard element={<AddNewCourse />} />}
       />
 
-      {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

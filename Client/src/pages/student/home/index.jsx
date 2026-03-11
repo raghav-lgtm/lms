@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import useStudentStore from "@/store/useStudentStore";
+import useAuthStore from "@/store/useAuthStore";
 import { fetchAllStudentCoursesService } from "@/services/studentservices/index";
 
 function StudentHomePage() {
@@ -14,6 +15,8 @@ function StudentHomePage() {
     loadingState,
     setLoadingState,
   } = useStudentStore();
+  const { getRole } = useAuthStore();
+  const role = getRole();
 
   useEffect(() => {
     async function fetchCourses() {
@@ -27,7 +30,6 @@ function StudentHomePage() {
         setLoadingState(false);
       }
     }
-
     fetchCourses();
   }, []);
 
@@ -38,12 +40,28 @@ function StudentHomePage() {
     navigate("/courses");
   }
 
-  function handleCourseNavigate(getCurrentCourseId) {
-    navigate(`/course/details/${getCurrentCourseId}`);
+  function handleCourseNavigate(courseId) {
+    navigate(`/course/details/${courseId}`);
   }
 
   return (
     <div className="min-h-screen bg-white">
+      {role === "instructor" && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 flex items-center justify-between">
+          <p className="text-sm text-yellow-800 font-medium">
+            You are logged in as an Instructor
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/instructor")}
+            className="border-yellow-400 text-yellow-800 hover:bg-yellow-100"
+          >
+            Go to Instructor Dashboard
+          </Button>
+        </div>
+      )}
+
       <section className="flex flex-col lg:flex-row items-center justify-between py-8 px-4 lg:px-8">
         <div className="lg:w-1/2 lg:pr-12">
           <h1 className="text-4xl font-bold mb-4">Learning that gets you</h1>
@@ -79,7 +97,6 @@ function StudentHomePage() {
 
       <section className="py-12 px-4 lg:px-8">
         <h2 className="text-2xl font-bold mb-6">Featured Courses</h2>
-
         {loadingState ? (
           <div className="text-center py-12 text-gray-500">
             Loading courses...
