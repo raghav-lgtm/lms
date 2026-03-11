@@ -2,41 +2,34 @@ import { courseCategories } from "@/config";
 import banner from "../../../../public/banner-img.png";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
-// Mock data for UI design
-const mockCourses = [
-  {
-    _id: "1",
-    title: "React for Beginners",
-    instructorName: "John Doe",
-    pricing: 49.99,
-    image: "https://placehold.co/300x150",
-  },
-  {
-    _id: "2",
-    title: "Advanced JavaScript",
-    instructorName: "Jane Smith",
-    pricing: 59.99,
-    image: "https://placehold.co/300x150",
-  },
-  {
-    _id: "3",
-    title: "Node.js Masterclass",
-    instructorName: "Bob Johnson",
-    pricing: 69.99,
-    image: "https://placehold.co/300x150",
-  },
-  {
-    _id: "4",
-    title: "Python Essentials",
-    instructorName: "Alice Brown",
-    pricing: 39.99,
-    image: "https://placehold.co/300x150",
-  },
-];
+import { useEffect } from "react";
+import useStudentStore from "@/store/useStudentStore";
+import { fetchAllStudentCoursesService } from "@/services/studentservices/index";
 
 function StudentHomePage() {
   const navigate = useNavigate();
+  const {
+    studentViewCoursesList,
+    setStudentViewCoursesList,
+    loadingState,
+    setLoadingState,
+  } = useStudentStore();
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        setLoadingState(true);
+        const res = await fetchAllStudentCoursesService();
+        if (res?.success) setStudentViewCoursesList(res.data);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    fetchCourses();
+  }, []);
 
   function handleNavigateToCoursesPage(getCurrentId) {
     sessionStorage.removeItem("filters");
@@ -86,29 +79,40 @@ function StudentHomePage() {
 
       <section className="py-12 px-4 lg:px-8">
         <h2 className="text-2xl font-bold mb-6">Featured Courses</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mockCourses.map((courseItem) => (
-            <div
-              key={courseItem._id}
-              onClick={() => handleCourseNavigate(courseItem._id)}
-              className="border rounded-lg overflow-hidden shadow cursor-pointer"
-            >
-              <img
-                src={courseItem.image}
-                width={300}
-                height={150}
-                className="w-full h-40 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-bold mb-2">{courseItem.title}</h3>
-                <p className="text-sm text-gray-700 mb-2">
-                  {courseItem.instructorName}
-                </p>
-                <p className="font-bold text-[16px]">${courseItem.pricing}</p>
+
+        {loadingState ? (
+          <div className="text-center py-12 text-gray-500">
+            Loading courses...
+          </div>
+        ) : studentViewCoursesList.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {studentViewCoursesList.map((courseItem) => (
+              <div
+                key={courseItem._id}
+                onClick={() => handleCourseNavigate(courseItem._id)}
+                className="border rounded-lg overflow-hidden shadow cursor-pointer"
+              >
+                <img
+                  src={courseItem.image}
+                  width={300}
+                  height={150}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold mb-2">{courseItem.title}</h3>
+                  <p className="text-sm text-gray-700 mb-2">
+                    {courseItem.instructor_name}
+                  </p>
+                  <p className="font-bold text-[16px]">${courseItem.pricing}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            No courses available at the moment.
+          </div>
+        )}
       </section>
     </div>
   );

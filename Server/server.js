@@ -3,9 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth-routes/index");
-
 const instructorRoutes = require("./routes/instructor-routes/media-routes");
 const courseRoutes = require("./routes/instructor-routes/course-routes");
+const studentCourseRoutes = require("./routes/student-routes/index");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,10 +34,9 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
-
 app.use("/media", instructorRoutes);
-
 app.use("/instructor/course", courseRoutes);
+app.use("/student/course", studentCourseRoutes);
 
 app.use((error, req, res, next) => {
   console.error(error.stack);
