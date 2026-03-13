@@ -6,6 +6,7 @@ import InstructorDashboard from "@/components/instructor-view/dashboard/index";
 import InstructorCourses from "../../components/instructor-view/courses/index";
 import useInstructorStore from "@/store/useInstructorStore";
 import { fetchInstructorCourseListService } from "@/services/mediahandle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function InstructorDashboardPage() {
   const { logout, user } = useAuthStore();
@@ -49,9 +50,9 @@ function InstructorDashboardPage() {
   }
 
   return (
-    <div className="flex h-full min-h-screen bg-gray-100">
-      <aside className="w-64 bg-white shadow-md">
-        <div className="p-4">
+    <div className="flex h-full min-h-screen bg-muted/40">
+      <aside className="w-64 bg-card border-r shadow-sm flex flex-col">
+        <div className="p-4 flex-1">
           <h2 className="text-2xl font-bold mb-4">Instructor View</h2>
           <nav>
             {menuItems.map((menuItem) => (
@@ -70,6 +71,10 @@ function InstructorDashboardPage() {
               </Button>
             ))}
           </nav>
+        </div>
+        <div className="p-4 border-t flex justify-between items-center">
+          <span className="text-sm text-muted-foreground font-medium">Theme</span>
+          <ThemeToggle />
         </div>
       </aside>
       <main className="flex-1 p-8 overflow-y-auto">

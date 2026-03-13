@@ -74,15 +74,15 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b">
-        <Link to="/" className="flex items-center">
-          <GraduationCap className="h-8 w-8 mr-4" />
-          <span className="font-extrabold text-xl">LMS LEARN</span>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50/50 via-background to-purple-50/50 dark:from-slate-950 dark:via-background dark:to-indigo-950/30">
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+        <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
+          <GraduationCap className="h-8 w-8 text-primary" />
+          <span className="font-extrabold text-2xl tracking-tight text-primary">LMS LEARN</span>
         </Link>
       </header>
 
-      <div className="flex items-center justify-center flex-1 bg-background">
+      <div className="flex items-center justify-center flex-1 p-4">
         <Tabs
           value={activeTab}
           onValueChange={handleTabChange}

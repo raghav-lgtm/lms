@@ -7,6 +7,7 @@ import RouteGuard from "./components/route-guard";
 import NotFoundPage from "./pages/not-found";
 import AddNewCourse from "./pages/instructor/add-new-course";
 import StudentViewCommonLayout from "@/components/student-view/common-layout";
+import StudentViewCoursesPage from "./pages/student/allcourses";
 
 function App() {
   return (
@@ -21,6 +22,10 @@ function App() {
         <Route
           path="/home"
           element={<RouteGuard element={<StudentHomePage />} />}
+        />
+        <Route
+          path="/courses"
+          element={<RouteGuard element={<StudentViewCoursesPage />} />}
         />
         <Route
           path="/course/details/:courseId"
