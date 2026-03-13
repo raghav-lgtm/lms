@@ -19,7 +19,7 @@ function StudentViewCommonHeader() {
         <Link to="/home" className="flex items-center hover:text-primary transition-colors">
           <GraduationCap className="h-8 w-8 mr-4 text-primary" />
           <span className="font-extrabold md:text-xl text-[14px] text-primary">
-            LMS LEARN
+            EDUHUB
           </span>
         </Link>
         <div className="flex items-center space-x-1">

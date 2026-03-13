@@ -78,7 +78,7 @@ function AuthPage() {
       <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
           <GraduationCap className="h-8 w-8 text-primary" />
-          <span className="font-extrabold text-2xl tracking-tight text-primary">LMS LEARN</span>
+          <span className="font-extrabold text-2xl tracking-tight text-primary">EDUHUB</span>
         </Link>
       </header>
 

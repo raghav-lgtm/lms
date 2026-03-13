@@ -7,7 +7,7 @@ function StudentViewCommonLayout() {
   const hideHeader = pathname.includes("course-progress");
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       {!hideHeader && <StudentViewCommonHeader />}
       <main>
         <Outlet />
