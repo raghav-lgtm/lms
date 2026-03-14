@@ -13,12 +13,13 @@ import {
   initialSignInFormData,
   initialSignUpFormData,
 } from "@/config";
-import { registrationServices } from "@/services/loginservices/index";
+import { registrationServices, googleAuthService } from "@/services/loginservices/index";
 import { GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "@/store/useAuthStore";
 import { loginServices } from "@/services/loginservices/index";
+import { GoogleLogin } from "@react-oauth/google";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("signin");
@@ -59,6 +60,25 @@ function AuthPage() {
     } catch (err) {
       console.error("Registration error:", err);
     }
+  }
+
+  async function handleGoogleSuccess(credentialResponse) {
+    try {
+      const res = await googleAuthService(credentialResponse.credential);
+      if (res?.success) {
+        const { user, accessToken } = res.data;
+        login(user, accessToken);
+        navigate("/");
+      } else {
+        console.error("Google Login failed:", res?.message);
+      }
+    } catch (err) {
+      console.error("Google Login error:", err);
+    }
+  }
+
+  function handleGoogleFailure() {
+    console.error("Google Login Failed");
   }
 
   function checkIfSignInFormIsValid() {
@@ -108,6 +128,22 @@ function AuthPage() {
                   isButtonDisabled={!checkIfSignInFormIsValid()}
                   handleSubmit={handleLoginUser}
                 />
+                <div className="relative mt-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleFailure}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -129,6 +165,22 @@ function AuthPage() {
                   isButtonDisabled={!checkIfSignUpFormIsValid()}
                   handleSubmit={handleRegisterUser}
                 />
+                <div className="relative mt-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleFailure}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

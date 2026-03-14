@@ -18,3 +18,11 @@ export const registrationServices = async (formData) => {
 
   return data;
 };
+
+export const googleAuthService = async (token) => {
+  const response = await axiosInstance.post("/auth/google", {
+    token,
+  });
+
+  return response.data;
+};
