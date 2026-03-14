@@ -2,7 +2,25 @@ const Course = require("../../models/Course.js");
 
 const getAllCoursesForStudent = async (req, res) => {
   try {
-    const courses = await Course.find({ isPublished: true });
+    const {
+      category = "",
+      level = "",
+      primaryLanguage = "",
+      sortBy = "price-lowtohigh",
+    } = req.query;
+
+    let filters = { isPublished: true };
+    if (category) filters.category = { $in: category.split(",") };
+    if (level) filters.level = { $in: level.split(",") };
+    if (primaryLanguage) filters.primaryLanguage = { $in: primaryLanguage.split(",") };
+
+    let sortParam = {};
+    if (sortBy === "price-lowtohigh") sortParam.pricing = 1;
+    else if (sortBy === "price-hightolow") sortParam.pricing = -1;
+    else if (sortBy === "title-atoz") sortParam.title = 1;
+    else if (sortBy === "title-ztoa") sortParam.title = -1;
+
+    const courses = await Course.find(filters).sort(sortParam);
     res.status(200).json({
       success: true,
       data: courses,
