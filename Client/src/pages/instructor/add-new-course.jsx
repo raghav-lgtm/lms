@@ -24,6 +24,7 @@ function AddNewCourse() {
     courseCurriculamFormData,
     setCourseLandingInitials,
     setCourseCurriculamFormData,
+    resetCourseCreationState,
   } = useInstructorStore();
 
   const { user } = useAuthStore();
@@ -126,7 +127,10 @@ function AddNewCourse() {
           ? await updateCourseById(courseId, courseData)
           : await addNewCourseService(courseData);
 
-      if (response?.success) navigate(-1);
+      if (response?.success) {
+        resetCourseCreationState();
+        navigate(-1);
+      }
     } catch (e) {
       console.error(`Failed to ${isEditMode ? "update" : "create"} course:`, e);
     } finally {

@@ -4,6 +4,7 @@ import useStudentStore from "@/store/useStudentStore";
 import { fetchStudentViewCourseDetailsService } from "@/services/studentservices/index";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, PlayCircle, Lock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function StudentCourseDetailsPage() {
   const { courseId } = useParams();
@@ -36,8 +37,48 @@ function StudentCourseDetailsPage() {
 
   if (loadingState) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-gray-500">
-        Loading course details...
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gray-900 py-10 px-4 lg:px-8">
+          <div className="max-w-5xl mx-auto space-y-4">
+            <Skeleton className="h-10 w-3/4 bg-gray-700" />
+            <Skeleton className="h-6 w-1/2 bg-gray-700" />
+            <div className="flex gap-4 pt-4">
+              <Skeleton className="h-4 w-24 bg-gray-700" />
+              <Skeleton className="h-4 w-24 bg-gray-700" />
+              <Skeleton className="h-4 w-24 bg-gray-700" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-lg p-6 border space-y-4">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+            <div className="bg-white rounded-lg p-6 border space-y-4">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+            <div className="bg-white rounded-lg p-6 border space-y-4">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <div className="border rounded-lg p-6 shadow-md bg-white space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
