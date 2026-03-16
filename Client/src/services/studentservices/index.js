@@ -1,7 +1,8 @@
 import { axiosInstance } from "@/api/axiosInatance";
 
 export async function fetchAllStudentCoursesService() {
-  const { data } = await axiosInstance.get("/student/course/get-all-courses");
+  // Server route is `/student/course/get`
+  const { data } = await axiosInstance.get("/student/course/get");
   return data;
 }
 
