@@ -165,13 +165,7 @@ export const courseLandingInitialFormData = {
 
 export const courseCurriculumInitialFormData = [
   {
-    title: "",
-    videoUrl: "",
-    freePreview: false,
-    public_id: "",
-  },
-
-  {
+    id: crypto.randomUUID(),
     title: "",
     videoUrl: "",
     freePreview: false,

@@ -293,7 +293,7 @@ function CourseCurriculum() {
         <CardContent className="space-y-4">
           {courseCurriculamFormData.map((course, index) => (
             <Card
-              key={course.id}
+              key={course.id || `${course.public_id || "lecture"}-${index}`}
               className="border-2"
               draggable
               onDragStart={() => handleDragStart(index)}
@@ -328,7 +328,13 @@ function CourseCurriculum() {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {course?.videoUrl && <VideoPlayer videoUrl={course.videoUrl} />}
+                {course?.videoUrl && (
+                  <div className="flex w-full items-center justify-center rounded-md bg-black/5 p-4">
+                    <div className="aspect-video w-full max-w-[600px] overflow-hidden rounded-md bg-black shadow-sm">
+                      <VideoPlayer videoUrl={course.videoUrl} />
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label>Upload Video</Label>
