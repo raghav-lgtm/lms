@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useStudentStore from "@/store/useStudentStore";
 import { fetchStudentViewCourseDetailsService } from "@/services/studentservices/index";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, PlayCircle, Lock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import VideoPlayer from "@/components/instructor-view/video-player";
 
 function StudentCourseDetailsPage() {
   const { courseId } = useParams();
@@ -15,6 +16,19 @@ function StudentCourseDetailsPage() {
     loadingState,
     setLoadingState,
   } = useStudentStore();
+
+  const [activePreviewIndex, setActivePreviewIndex] = useState(null);
+
+  const curriculam = studentViewCourseDetails?.curriculam;
+
+  const activePreviewLecture = useMemo(() => {
+    if (!Array.isArray(curriculam)) return null;
+    if (activePreviewIndex === null) return null;
+    const lecture = curriculam[activePreviewIndex];
+    if (!lecture?.freePreview) return null;
+    if (!lecture?.videoUrl) return null;
+    return lecture;
+  }, [curriculam, activePreviewIndex]);
 
   useEffect(() => {
     async function fetchDetails() {
@@ -33,6 +47,11 @@ function StudentCourseDetailsPage() {
 
     // clear details on unmount so stale data doesn't flash
     return () => setStudentViewCourseDetails(null);
+  }, [courseId]);
+
+  useEffect(() => {
+    // reset preview selection when navigating between courses
+    setActivePreviewIndex(null);
   }, [courseId]);
 
   if (loadingState) {
@@ -105,7 +124,6 @@ function StudentCourseDetailsPage() {
     level,
     pricing,
     image,
-    curriculam,
     students,
   } = studentViewCourseDetails;
 
@@ -128,6 +146,31 @@ function StudentCourseDetailsPage() {
       <div className="max-w-5xl mx-auto px-4 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left — course info */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Free Preview Player */}
+          {activePreviewLecture && (
+            <div className="bg-white rounded-lg p-6 border">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold">Free Preview</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {activePreviewLecture.title}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActivePreviewIndex(null)}
+                >
+                  Close
+                </Button>
+              </div>
+
+              <div className="mt-4 aspect-video w-full overflow-hidden rounded-md bg-black">
+                <VideoPlayer videoUrl={activePreviewLecture.videoUrl} />
+              </div>
+            </div>
+          )}
+
           {/* Objectives */}
           <div className="bg-white rounded-lg p-6 border">
             <h2 className="text-xl font-bold mb-4">What you'll learn</h2>
@@ -155,9 +198,17 @@ function StudentCourseDetailsPage() {
             </h2>
             <div className="space-y-2">
               {curriculam?.map((lecture, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-md border hover:bg-gray-50"
+                <button
+                  key={lecture?.public_id || lecture?.videoUrl || index}
+                  type="button"
+                  onClick={() => {
+                    if (lecture?.freePreview) {
+                      setActivePreviewIndex(index);
+                      return;
+                    }
+                    alert("This lecture is locked. Purchase the course to watch it.");
+                  }}
+                  className="w-full text-left flex items-center justify-between p-3 rounded-md border hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
                 >
                   <div className="flex items-center gap-3">
                     {lecture.freePreview ? (
@@ -172,7 +223,7 @@ function StudentCourseDetailsPage() {
                       Free Preview
                     </span>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </div>
