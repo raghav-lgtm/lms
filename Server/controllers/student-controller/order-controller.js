@@ -1,4 +1,4 @@
-const { getPaymentService } = require("../../helpers/payment");
+const { getPaymentService } = require("../../helper/payment");
 const Order = require("../../models/Order");
 const Course = require("../../models/Course");
 const StudentCourses = require("../../models/StudentCourses");
@@ -12,18 +12,28 @@ const createOrder = async (req, res) => {
             courseImage, courseTitle, courseId, coursePricing,
         } = req.body;
 
+        const normalizedPaymentMethod = String(paymentMethod || "paypal").toLowerCase();
+        const normalizedCoursePricing = Number(coursePricing);
+
+        if (!Number.isFinite(normalizedCoursePricing) || normalizedCoursePricing <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "coursePricing must be a positive number",
+            });
+        }
+
         // Dynamically pick service based on request — no hardcoding
-        const paymentService = getPaymentService(paymentMethod);
+        const paymentService = getPaymentService(normalizedPaymentMethod);
 
         const items = [{
             name: courseTitle,
             sku: courseId,
-            price: coursePricing,
+            price: normalizedCoursePricing.toFixed(2),
             currency: "USD",
             quantity: 1,
         }];
 
-        const amount = { currency: "USD", total: coursePricing.toFixed(2) };
+        const amount = { currency: "USD", total: normalizedCoursePricing.toFixed(2) };
 
         const redirectUrls = {
             return_url: `${process.env.CLIENT_URL}/payment-return`,
@@ -38,7 +48,7 @@ const createOrder = async (req, res) => {
             userId, userName, userEmail, orderStatus,
             paymentMethod, paymentStatus, orderDate,
             paymentId, payerId, instructorId, instructorName,
-            courseImage, courseTitle, courseId, coursePricing,
+            courseImage, courseTitle, courseId, coursePricing: normalizedCoursePricing,
         });
 
         await newlyCreatedCourseOrder.save();
@@ -76,7 +86,7 @@ const capturePaymentAndFinalizeOrder = async (req, res) => {
             });
         }
 
-        const paymentService = getPaymentService(order.paymentMethod || "paypal");
+        const paymentService = getPaymentService(String(order.paymentMethod || "paypal").toLowerCase());
 
         const paymentResult = await paymentService.capturePayment(paymentId, payerId);
 
@@ -90,8 +100,9 @@ const capturePaymentAndFinalizeOrder = async (req, res) => {
             });
         }
 
-        order.paymentStatus = "completed";
-        order.orderStatus = "completed";
+        // Match the reference controller status strings
+        order.paymentStatus = "paid";
+        order.orderStatus = "confirmed";
         order.paymentId = paymentId;
         order.payerId = payerId;
         await order.save();
@@ -115,19 +126,28 @@ const capturePaymentAndFinalizeOrder = async (req, res) => {
                 title: order.courseTitle,
                 instructorId: order.instructorId,
                 instructorName: order.instructorName,
-                dateOfPurchase: new Date(),
+                dateOfPurchase: order.orderDate,
                 courseImage: order.courseImage,
             });
             await studentCourses.save();
         }
 
+        // Match the reference controller: update Course.students via $addToSet
+        await Course.findByIdAndUpdate(order.courseId, {
+            $addToSet: {
+                students: {
+                    studentId: order.userId,
+                    studentName: order.userName,
+                    studentEmail: order.userEmail,
+                    paidAmount: Number(order.coursePricing),
+                },
+            },
+        });
+
         return res.status(200).json({
             success: true,
-            message: "Payment captured and order finalized successfully",
-            data: {
-                orderId: order._id,
-                courseId: order.courseId,
-            },
+            message: "Order confirmed",
+            data: order,
         });
     } catch (err) {
         console.log(err);
