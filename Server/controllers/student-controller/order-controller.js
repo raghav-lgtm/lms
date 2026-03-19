@@ -14,6 +14,7 @@ const createOrder = async (req, res) => {
 
         const normalizedPaymentMethod = String(paymentMethod || "paypal").toLowerCase();
         const normalizedCoursePricing = Number(coursePricing);
+        const normalizedOrderDate = orderDate ? new Date(orderDate) : new Date();
 
         if (!Number.isFinite(normalizedCoursePricing) || normalizedCoursePricing <= 0) {
             return res.status(400).json({
@@ -21,8 +22,7 @@ const createOrder = async (req, res) => {
                 message: "coursePricing must be a positive number",
             });
         }
-
-        // Dynamically pick service based on request — no hardcoding
+        
         const paymentService = getPaymentService(normalizedPaymentMethod);
 
         const items = [{
@@ -45,8 +45,11 @@ const createOrder = async (req, res) => {
         );
 
         const newlyCreatedCourseOrder = new Order({
-            userId, userName, userEmail, orderStatus,
-            paymentMethod, paymentStatus, orderDate,
+            userId, userName, userEmail,
+            orderStatus: orderStatus || "pending",
+            paymentMethod: normalizedPaymentMethod,
+            paymentStatus: paymentStatus || "pending",
+            orderDate: normalizedOrderDate,
             paymentId, payerId, instructorId, instructorName,
             courseImage, courseTitle, courseId, coursePricing: normalizedCoursePricing,
         });

@@ -1,14 +1,8 @@
-import { useEffect } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 import useAuthStore from "@/store/useAuthStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AuthProvider({ children }) {
-  const { loading, setLoading } = useAuthStore();
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const loading = useAuthStore((state) => state.loading);
 
   if (loading) {
     return (

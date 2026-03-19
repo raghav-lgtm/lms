@@ -9,32 +9,41 @@ import { fetchInstructorCourseListService } from "@/services/mediahandle";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 function InstructorDashboardPage() {
-  const { logout, user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { setInstructorCoursesList, InstructorCoursesList } =
-    useInstructorStore();
-
-  async function fetchAllCourses() {
-    const response = await fetchInstructorCourseListService(user?.id);
-    if (response?.success) setInstructorCoursesList(response?.data);
-  }
+  const instructorCoursesList = useInstructorStore((state) => state.InstructorCoursesList);
+  const setInstructorCoursesList = useInstructorStore((state) => state.setInstructorCoursesList);
 
   useEffect(() => {
+    if (!user?.id) return;
+    let isMounted = true;
+
+    async function fetchAllCourses() {
+      try {
+        const response = await fetchInstructorCourseListService(user?.id);
+        if (isMounted && response?.success) setInstructorCoursesList(response?.data);
+      } catch (err) {
+        if (isMounted) console.error(err);
+      }
+    }
+
     fetchAllCourses();
-  });
+    return () => { isMounted = false; };
+  }, [user?.id]);
 
   const menuItems = [
     {
       icon: BarChart,
       label: "Dashboard",
       value: "dashboard",
-      component: <InstructorDashboard />,
+      component: <InstructorDashboard listOfCourses={instructorCoursesList} />,
     },
     {
       icon: Book,
       label: "Courses",
       value: "courses",
-      component: <InstructorCourses listOfCourses={InstructorCoursesList} />,
+      component: <InstructorCourses listOfCourses={instructorCoursesList} />,
     },
     {
       icon: LogOut,

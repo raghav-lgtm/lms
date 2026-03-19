@@ -30,7 +30,7 @@ export async function addNewCourseService(formData) {
 }
 
 export async function fetchInstructorCourseDetailsService(id) {
-  const res = await axiosInstance.get(`/instructor/course/getCourse/${id}`);
+  const res = await axiosInstance.get(`/instructor/course/getAllCourses/${id}`);
   return res.data;
 }
 
@@ -48,3 +48,5 @@ export async function deleteCourseById(id) {
   );
   return res.data;
 }
+
+

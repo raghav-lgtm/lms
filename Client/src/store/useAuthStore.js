@@ -6,24 +6,19 @@ const useAuthStore = create(
     (set, get) => ({
       user: null,
       token: null,
-      loading: true,
-
-      // Derived value as a getter
+      loading: false,
       getRole: () => get().user?.role || null,
-
       login: (userData, accessToken) => {
         set({ user: userData, token: accessToken });
       },
-
       logout: () => {
         set({ user: null, token: null });
       },
-
       setLoading: (loading) => set({ loading }),
     }),
     {
-      name: "auth-storage", // localStorage key
-      partialize: (state) => ({ user: state.user, token: state.token }), // only persist auth data, not loading
+      name: "auth-storage",
+      partialize: (state) => ({ user: state.user, token: state.token }),
     },
   ),
 );

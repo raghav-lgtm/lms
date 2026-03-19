@@ -17,7 +17,17 @@ const createPayment = (items, amount, description, redirectUrls) => {
 };
 
 const getApprovalUrl = (paymentInfo) =>
-    paymentInfo.links.find((link) => link.rel === "approval_url").href;
+    (() => {
+        const links = paymentInfo?.links;
+        if (!Array.isArray(links)) {
+            throw new Error("PayPal response missing links");
+        }
+        const approval = links.find((link) => link.rel === "approval_url");
+        if (!approval?.href) {
+            throw new Error("PayPal approval_url not found");
+        }
+        return approval.href;
+    })();
 
 const capturePayment = (paymentId, payerId) => {
     return new Promise((resolve, reject) => {

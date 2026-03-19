@@ -8,12 +8,15 @@ import NotFoundPage from "./pages/not-found";
 import AddNewCourse from "./pages/instructor/add-new-course";
 import StudentViewCommonLayout from "@/components/student-view/common-layout";
 import StudentViewCoursesPage from "./pages/student/allcourses";
+import PaypalPaymentReturnPage from "./pages/student/payment-return/payment-succesful";
+import PaymentFailedPage from "./pages/student/payment-return/payment-failed";
+import StudentCoursePage from "./pages/student/student-courses/index";
+import StudentViewCourseProgressPage from "./pages/student/course-progress";
 
 function App() {
   return (
     <Routes>
       <Route path="/auth" element={<RouteGuard element={<AuthPage />} />} />
-
       <Route element={<StudentViewCommonLayout />}>
         <Route
           path="/"
@@ -31,8 +34,15 @@ function App() {
           path="/course/details/:courseId"
           element={<RouteGuard element={<StudentCourseDetailsPage />} />}
         />
+        <Route
+          path="/student/my-courses"
+          element={<RouteGuard element={<StudentCoursePage />} />}
+        />
+        <Route
+          path="/student/my-courses/progress/:id"
+          element={<RouteGuard element={<StudentViewCourseProgressPage />} />}
+        />
       </Route>
-
       <Route
         path="/instructor"
         element={<RouteGuard element={<InstructorDashboardPage />} />}
@@ -45,8 +55,9 @@ function App() {
         path="/instructor/edit-course/:courseId"
         element={<RouteGuard element={<AddNewCourse />} />}
       />
-
       <Route path="*" element={<NotFoundPage />} />
+      <Route path="/payment-return" element={<PaypalPaymentReturnPage />} />
+      <Route path="/payment-cancel" element={<PaymentFailedPage />} />
     </Routes>
   );
 }

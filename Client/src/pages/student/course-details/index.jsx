@@ -3,9 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import useStudentStore from "@/store/useStudentStore";
 import { fetchStudentViewCourseDetailsService } from "@/services/studentservices/index";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, PlayCircle, Lock } from "lucide-react";
+import { PlayCircle, Lock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import VideoPlayer from "@/components/instructor-view/video-player";
+import useAuthStore from "@/store/useAuthStore";
+import { createPaymentService } from "@/services/studentservices/index";
 
 function StudentCourseDetailsPage() {
   const { courseId } = useParams();
@@ -18,8 +20,10 @@ function StudentCourseDetailsPage() {
   } = useStudentStore();
 
   const [activePreviewIndex, setActivePreviewIndex] = useState(null);
+  const [approvalUrl, setApprovalUrl] = useState(null);
 
   const curriculam = studentViewCourseDetails?.curriculam;
+  const { user } = useAuthStore();
 
   const activePreviewLecture = useMemo(() => {
     if (!Array.isArray(curriculam)) return null;
@@ -45,14 +49,51 @@ function StudentCourseDetailsPage() {
 
     fetchDetails();
 
-    // clear details on unmount so stale data doesn't flash
     return () => setStudentViewCourseDetails(null);
   }, [courseId]);
 
   useEffect(() => {
-    // reset preview selection when navigating between courses
     setActivePreviewIndex(null);
   }, [courseId]);
+
+  useEffect(() => {
+    if (approvalUrl) {
+      window.location.href = approvalUrl;
+    }
+  }, [approvalUrl]);
+
+  async function handleCreatePayment() {
+    try {
+      const paymentPayload = {
+        userId: user?.id,
+        userName: user?.userName,
+        userEmail: user?.userEmail,
+        orderStatus: "pending",
+        paymentMethod: "paypal",
+        paymentStatus: "Initiated",
+        orderDate: new Date(),
+        paymentId: null,
+        payerId: null,
+        instructorId: studentViewCourseDetails?.instructor_id,
+        instructorName: studentViewCourseDetails?.instructor_name,
+        courseImage: studentViewCourseDetails?.image,
+        courseTitle: studentViewCourseDetails?.title,
+        courseId: studentViewCourseDetails?._id,
+        coursePricing: studentViewCourseDetails?.pricing,
+      };
+
+      const res = await createPaymentService(paymentPayload);
+      
+      if (res?.success) {
+        sessionStorage.setItem("currentOrderId", JSON.stringify(res.data.orderId));
+        setApprovalUrl(res?.data?.approveUrl);
+      } else {
+        console.error("Failed to create payment:", res?.message);
+      }
+    } catch (error) {
+      console.error("Failed to create payment:", error);
+    }
+  }
 
   if (loadingState) {
     return (
@@ -135,10 +176,10 @@ function StudentCourseDetailsPage() {
           <h1 className="text-3xl font-bold mb-3">{title}</h1>
           <p className="text-gray-300 text-lg mb-4">{subtitle}</p>
           <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-            <span>👨‍🏫 {instructor_name}</span>
-            <span>🌐 {primaryLanguage}</span>
-            <span>📊 {level}</span>
-            <span>👥 {students?.length ?? 0} students enrolled</span>
+            <span>{instructor_name}</span>
+            <span>{primaryLanguage}</span>
+            <span>{level}</span>
+            <span>{students?.length ?? 0} students enrolled</span>
           </div>
         </div>
       </div>
@@ -164,7 +205,6 @@ function StudentCourseDetailsPage() {
                   Close
                 </Button>
               </div>
-
               <div className="mt-4 aspect-video w-full overflow-hidden rounded-md bg-black">
                 <VideoPlayer videoUrl={activePreviewLecture.videoUrl} />
               </div>
@@ -238,7 +278,9 @@ function StudentCourseDetailsPage() {
             />
             <p className="text-3xl font-bold mb-2">${pricing}</p>
             <p className="text-sm text-gray-500 mb-4">One-time payment</p>
-            <Button className="w-full mb-2">Buy Now</Button>
+            <Button className="w-full mb-2" onClick={handleCreatePayment}>
+              Buy Now
+            </Button>
             <Button
               variant="outline"
               className="w-full"

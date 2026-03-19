@@ -35,10 +35,8 @@ function AuthPage() {
 
   async function handleLoginUser(e) {
     e.preventDefault();
-
     try {
       const res = await loginServices(signInFormData);
-
       if (res?.success) {
         const { user, accessToken } = res.data;
         login(user, accessToken);
@@ -53,7 +51,6 @@ function AuthPage() {
 
   async function handleRegisterUser(e) {
     e.preventDefault();
-
     try {
       await registrationServices(signUpFormData);
       setActiveTab("signin");
@@ -67,7 +64,12 @@ function AuthPage() {
       const res = await googleAuthService(credentialResponse.credential);
       if (res?.success) {
         const { user, accessToken } = res.data;
-        login(user, accessToken);
+        const normalizedUser = {
+          ...user,
+          userName: user.userName || user.name,
+          userEmail: user.userEmail || user.email,
+        };
+        login(normalizedUser, accessToken);
         navigate("/");
       } else {
         console.error("Google Login failed:", res?.message);
@@ -103,88 +105,70 @@ function AuthPage() {
       </header>
 
       <div className="flex items-center justify-center flex-1 p-4">
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="w-full max-w-md"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
+        <div className="w-full max-w-md space-y-4">
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="signin">
-            <Card className="p-6 space-y-4">
-              <CardHeader>
-                <CardTitle>Sign in to your account</CardTitle>
-                <CardDescription>Enter your email and password</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CommonForm
-                  formControls={signInFormControls}
-                  buttonText="Sign In"
-                  formData={signInFormData}
-                  setFormData={setSignInFormData}
-                  isButtonDisabled={!checkIfSignInFormIsValid()}
-                  handleSubmit={handleLoginUser}
-                />
-                <div className="relative mt-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleFailure}
+            <TabsContent value="signin">
+              <Card className="p-6 space-y-4">
+                <CardHeader>
+                  <CardTitle>Sign in to your account</CardTitle>
+                  <CardDescription>Enter your email and password</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CommonForm
+                    formControls={signInFormControls}
+                    buttonText="Sign In"
+                    formData={signInFormData}
+                    setFormData={setSignInFormData}
+                    isButtonDisabled={!checkIfSignInFormIsValid()}
+                    handleSubmit={handleLoginUser}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="signup">
-            <Card className="p-6 space-y-4">
-              <CardHeader>
-                <CardTitle>Create a new account</CardTitle>
-                <CardDescription>
-                  Enter your details to get started
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CommonForm
-                  formControls={signUpFormControls}
-                  buttonText="Sign Up"
-                  formData={signUpFormData}
-                  setFormData={setSignUpFormData}
-                  isButtonDisabled={!checkIfSignUpFormIsValid()}
-                  handleSubmit={handleRegisterUser}
-                />
-                <div className="relative mt-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleFailure}
+            <TabsContent value="signup">
+              <Card className="p-6 space-y-4">
+                <CardHeader>
+                  <CardTitle>Create a new account</CardTitle>
+                  <CardDescription>Enter your details to get started</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CommonForm
+                    formControls={signUpFormControls}
+                    buttonText="Sign Up"
+                    formData={signUpFormData}
+                    setFormData={setSignUpFormData}
+                    isButtonDisabled={!checkIfSignUpFormIsValid()}
+                    handleSubmit={handleRegisterUser}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* Single GoogleLogin instance — outside Tabs so it only mounts once */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleFailure}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
