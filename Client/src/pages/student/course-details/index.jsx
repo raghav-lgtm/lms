@@ -46,9 +46,7 @@ function StudentCourseDetailsPage() {
         setLoadingState(false);
       }
     }
-
     fetchDetails();
-
     return () => setStudentViewCourseDetails(null);
   }, [courseId]);
 
@@ -81,9 +79,7 @@ function StudentCourseDetailsPage() {
         courseId: studentViewCourseDetails?._id,
         coursePricing: studentViewCourseDetails?.pricing,
       };
-
       const res = await createPaymentService(paymentPayload);
-      
       if (res?.success) {
         sessionStorage.setItem("currentOrderId", JSON.stringify(res.data.orderId));
         setApprovalUrl(res?.data?.approveUrl);
@@ -97,7 +93,7 @@ function StudentCourseDetailsPage() {
 
   if (loadingState) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <div className="bg-gray-900 py-10 px-4 lg:px-8">
           <div className="max-w-5xl mx-auto space-y-4">
             <Skeleton className="h-10 w-3/4 bg-gray-700" />
@@ -111,19 +107,19 @@ function StudentCourseDetailsPage() {
         </div>
         <div className="max-w-5xl mx-auto px-4 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white rounded-lg p-6 border space-y-4">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700 space-y-4">
               <Skeleton className="h-6 w-1/3" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
             </div>
-            <div className="bg-white rounded-lg p-6 border space-y-4">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700 space-y-4">
               <Skeleton className="h-6 w-1/3" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-5/6" />
             </div>
-            <div className="bg-white rounded-lg p-6 border space-y-4">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700 space-y-4">
               <Skeleton className="h-6 w-1/3" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
@@ -131,7 +127,7 @@ function StudentCourseDetailsPage() {
             </div>
           </div>
           <div className="lg:col-span-1">
-            <div className="border rounded-lg p-6 shadow-md bg-white space-y-4">
+            <div className="border dark:border-gray-700 rounded-lg p-6 shadow-md bg-white dark:bg-gray-900 space-y-4">
               <Skeleton className="h-40 w-full rounded-md" />
               <Skeleton className="h-10 w-1/3" />
               <Skeleton className="h-4 w-1/2" />
@@ -145,7 +141,7 @@ function StudentCourseDetailsPage() {
 
   if (!studentViewCourseDetails) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-gray-500 gap-4">
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-500 dark:text-gray-400 gap-4">
         <p>Course not found.</p>
         <Button variant="outline" onClick={() => navigate(-1)}>
           Go Back
@@ -169,7 +165,7 @@ function StudentCourseDetailsPage() {
   } = studentViewCourseDetails;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Hero Banner */}
       <div className="bg-gray-900 text-white py-10 px-4 lg:px-8">
         <div className="max-w-5xl mx-auto">
@@ -185,23 +181,17 @@ function StudentCourseDetailsPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left — course info */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Free Preview Player */}
           {activePreviewLecture && (
-            <div className="bg-white rounded-lg p-6 border">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">Free Preview</h2>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h2 className="text-xl font-bold dark:text-white">Free Preview</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {activePreviewLecture.title}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActivePreviewIndex(null)}
-                >
+                <Button variant="outline" size="sm" onClick={() => setActivePreviewIndex(null)}>
                   Close
                 </Button>
               </div>
@@ -211,29 +201,25 @@ function StudentCourseDetailsPage() {
             </div>
           )}
 
-          {/* Objectives */}
-          <div className="bg-white rounded-lg p-6 border">
-            <h2 className="text-xl font-bold mb-4">What you'll learn</h2>
-            <p className="text-gray-700 whitespace-pre-line">{objectives}</p>
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">What you'll learn</h2>
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{objectives}</p>
           </div>
 
-          {/* Description */}
-          <div className="bg-white rounded-lg p-6 border">
-            <h2 className="text-xl font-bold mb-4">Course Description</h2>
-            <p className="text-gray-700 whitespace-pre-line">{description}</p>
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Course Description</h2>
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{description}</p>
           </div>
 
-          {/* Welcome Message */}
           {welcomeMessage && (
-            <div className="bg-white rounded-lg p-6 border">
-              <h2 className="text-xl font-bold mb-4">Welcome Message</h2>
-              <p className="text-gray-700">{welcomeMessage}</p>
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700">
+              <h2 className="text-xl font-bold mb-4 dark:text-white">Welcome Message</h2>
+              <p className="text-gray-700 dark:text-gray-300">{welcomeMessage}</p>
             </div>
           )}
 
-          {/* Curriculum */}
-          <div className="bg-white rounded-lg p-6 border">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">
               Course Curriculum ({curriculam?.length ?? 0} lectures)
             </h2>
             <div className="space-y-2">
@@ -248,13 +234,13 @@ function StudentCourseDetailsPage() {
                     }
                     alert("This lecture is locked. Purchase the course to watch it.");
                   }}
-                  className="w-full text-left flex items-center justify-between p-3 rounded-md border hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                  className="w-full text-left flex items-center justify-between p-3 rounded-md border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 text-gray-800 dark:text-gray-200"
                 >
                   <div className="flex items-center gap-3">
                     {lecture.freePreview ? (
                       <PlayCircle className="h-4 w-4 text-green-500" />
                     ) : (
-                      <Lock className="h-4 w-4 text-gray-400" />
+                      <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     )}
                     <span className="text-sm font-medium">{lecture.title}</span>
                   </div>
@@ -269,23 +255,15 @@ function StudentCourseDetailsPage() {
           </div>
         </div>
 
-        {/* Right — purchase card */}
         <div className="lg:col-span-1">
-          <div className="border rounded-lg p-6 shadow-md sticky top-6 bg-white">
-            <img
-              src={image}
-              className="w-full h-40 object-cover rounded-md mb-4"
-            />
-            <p className="text-3xl font-bold mb-2">${pricing}</p>
-            <p className="text-sm text-gray-500 mb-4">One-time payment</p>
+          <div className="border dark:border-gray-700 rounded-lg p-6 shadow-md sticky top-6 bg-white dark:bg-gray-900">
+            <img src={image} className="w-full h-40 object-cover rounded-md mb-4" />
+            <p className="text-3xl font-bold mb-2 dark:text-white">${pricing}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">One-time payment</p>
             <Button className="w-full mb-2" onClick={handleCreatePayment}>
               Buy Now
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate(-1)}
-            >
+            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
               Go Back
             </Button>
           </div>
