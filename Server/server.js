@@ -22,7 +22,7 @@ const corsOptions = {
     const allowed = [
       process.env.CLIENT_URL,
       "http://localhost:5173",
-      "http://127.0.0.1:5173",
+      "https://lms-ten-orpin.vercel.app",
     ].filter(Boolean);
     if (allowed.includes(origin)) return callback(null, true);
     return callback(null, false);
