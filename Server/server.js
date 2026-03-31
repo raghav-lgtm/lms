@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const http = require("http");
+const { Server } = require("socket.io");
 const authRoutes = require("./routes/auth-routes/index");
 const instructorRoutes = require("./routes/instructor-routes/media-routes");
 const courseRoutes = require("./routes/instructor-routes/course-routes");
@@ -11,6 +13,7 @@ const studentCoursesRoutes = require("./routes/student-routes/student-courses-ro
 const studentCourseProgressRoutes = require("./routes/student-routes/course-progress-routes");
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -35,6 +38,24 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
+
+const io = new Server(server, {
+  cors: corsOptions,
+});
+
+io.on("connection", (socket) => {
+  console.log(`User connected to socket: ${socket.id}`);
+
+  // Course chatroom will go here
+  // socket.on("join-course-room", (courseId) => {
+  //   socket.join(courseId);
+  //   console.log(`User ${socket.id} joined course room ${courseId}`);
+  // });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected from socket: ${socket.id}`);
+  });
+});
 
 mongoose
   .connect(MONGODB_URI)
@@ -62,6 +83,6 @@ app.use((error, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
