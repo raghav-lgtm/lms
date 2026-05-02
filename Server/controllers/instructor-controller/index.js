@@ -5,8 +5,8 @@ const redisClient = require("../../config/redis");
 const invalidateCache = async (courseId = null) => {
   try {
     const keys = await redisClient.keys("courses:student:*");
-    if (keys.length > 0) {
-      await redisClient.del(keys);
+    if (keys && keys.length > 0) {
+      await redisClient.del(...keys);
     }
     if (courseId) {
       await redisClient.del(`course:details:${courseId}`);
@@ -16,6 +16,7 @@ const invalidateCache = async (courseId = null) => {
     console.error("Redis invalidation error:", err);
   }
 };
+
 
 const addCourse = async (req, res) => {
   try {

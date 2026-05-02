@@ -19,7 +19,7 @@ const getAllCoursesForStudent = async (req, res) => {
         console.log("Cache Hit: getAllCoursesForStudent");
         return res.status(200).json({
           success: true,
-          data: JSON.parse(cachedCourses),
+          data: typeof cachedCourses === "string" ? JSON.parse(cachedCourses) : cachedCourses,
         });
       }
     } catch (cacheError) {
@@ -44,7 +44,7 @@ const getAllCoursesForStudent = async (req, res) => {
 
     // Save to cache for 1 hour (3600 seconds)
     try {
-      await redisClient.setEx(cacheKey, 3600, JSON.stringify(courses));
+      await redisClient.set(cacheKey, courses, { ex: 3600 });
     } catch (cacheError) {
       console.error("Redis set error:", cacheError);
     }
@@ -75,7 +75,7 @@ const getStudentCourseDetailsById = async (req, res) => {
         console.log("Cache Hit: getStudentCourseDetailsById");
         return res.status(200).json({
           success: true,
-          data: JSON.parse(cachedCourse),
+          data: typeof cachedCourse === "string" ? JSON.parse(cachedCourse) : cachedCourse,
         });
       }
     } catch (cacheError) {
@@ -95,7 +95,7 @@ const getStudentCourseDetailsById = async (req, res) => {
 
     // Save to cache for 1 hour
     try {
-      await redisClient.setEx(cacheKey, 3600, JSON.stringify(course));
+      await redisClient.set(cacheKey, course, { ex: 3600 });
     } catch (cacheError) {
       console.error("Redis set error:", cacheError);
     }

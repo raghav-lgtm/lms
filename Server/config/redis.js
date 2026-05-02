@@ -1,18 +1,12 @@
-const redis = require("redis");
+const { Redis } = require("@upstash/redis");
 
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379",
+const redisClient = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || "https://robust-mite-112929.upstash.io",
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || "gQAAAAAAAbkhAAIgcDJmNjFjNWQzMjE4NWM0YzA3YThlZGI2MWIzZGJjYmRjMQ",
 });
 
-redisClient.on("error", (err) => {
-  console.error("Redis connection error:", err);
-});
-
-redisClient.on("connect", () => {
-  console.log("Connected to Redis successfully.");
-});
-
-// Initialize connection
-redisClient.connect().catch(console.error);
+// Upstash Redis (REST) doesn't use a persistent connection, 
+// so we don't need .connect() or event listeners.
 
 module.exports = redisClient;
+
