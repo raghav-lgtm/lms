@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import useInstructorStore from "@/store/useInstructorStore";
@@ -92,7 +92,17 @@ function InstructorCourses({ listOfCourses, refreshCourses }) {
                         ).toFixed(2)}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 mr-2"
+                          onClick={() => navigate(`/course/details/${course._id}`)}
+                        >
+                          <ExternalLink className="h-5 w-5" />
+                          <span className="ml-1 text-xs font-medium">View Page</span>
+                        </Button>
+
                         <Button
                           variant="ghost"
                           size="sm"

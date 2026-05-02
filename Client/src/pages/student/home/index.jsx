@@ -1,11 +1,12 @@
 import { courseCategories } from "@/config";
-import banner from "../../../../public/banner-img.png";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import useStudentStore from "@/store/useStudentStore";
 import useAuthStore from "@/store/useAuthStore";
-import { fetchAllStudentCoursesService } from "@/services/studentservices/index";
+import { fetchAllStudentCoursesService, toggleWishlistService } from "@/services/studentservices/index";
+import { Heart } from "lucide-react";
+import { toast } from "sonner";
 
 function StudentHomePage() {
   const navigate = useNavigate();
@@ -44,6 +45,15 @@ function StudentHomePage() {
     navigate(`/course/details/${courseId}`);
   }
 
+  async function handleToggleWishlist(courseId) {
+    const userObj = useAuthStore.getState().user;
+    if (!userObj?.id) return;
+    const res = await toggleWishlistService(userObj.id, courseId);
+    if (res?.success) {
+      toast.success(res.message);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {role === "instructor" && (
@@ -73,7 +83,7 @@ function StudentHomePage() {
         </div>
         <div className="lg:w-full mb-8 lg:mb-0">
           <img
-            src={banner}
+            src="/banner-img.png"
             width={600}
             height={400}
             className="w-full h-auto rounded-2xl shadow-2xl transition-transform duration-500 hover:scale-[1.02]"
@@ -110,8 +120,19 @@ function StudentHomePage() {
               <div
                 key={courseItem._id}
                 onClick={() => handleCourseNavigate(courseItem._id)}
-                className="border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer bg-card group"
+                className="border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer bg-card group relative"
               >
+                <Button
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute top-2 right-2 bg-white/70 hover:bg-white text-muted-foreground hover:text-red-500 rounded-full z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleWishlist(courseItem._id);
+                  }}
+                >
+                  <Heart className="h-5 w-5" />
+                </Button>
                 <div className="overflow-hidden">
                   <img
                     src={courseItem.image}

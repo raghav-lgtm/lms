@@ -10,13 +10,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterOptions, sortOptions } from "@/config";
-import { fetchStudentViewCourseListService } from "@/services/studentservices/index";
+import { toggleWishlistService } from "@/services/studentservices/index";
 import useStudentStore from "@/store/useStudentStore";
-import { ArrowUpDownIcon } from "lucide-react";
+import useAuthStore from "@/store/useAuthStore";
+import { ArrowUpDownIcon, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 function StudentViewCoursesPage() {
+  const user = useAuthStore((state) => state.user);
   const [sort, setSort] = useState("price-lowtohigh");
   const [filters, setFilters] = useState({});
   const [searchParams, setSearchParams] = useSearchParams();
@@ -100,6 +103,14 @@ function StudentViewCoursesPage() {
       fetchAllStudentCourses();
   }, [filters, sort, setLoadingState, setStudentViewCoursesList]);
 
+  async function handleToggleWishlist(courseId) {
+    if (!user?.id) return;
+    const res = await toggleWishlistService(user?.id, courseId);
+    if (res?.success) {
+      toast.success(res.message);
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 lg:p-8 bg-background min-h-screen">
       <h1 className="text-4xl font-extrabold mb-8 text-foreground tracking-tight">All Courses</h1>
@@ -160,8 +171,19 @@ function StudentViewCoursesPage() {
                 <div
                   key={courseItem._id}
                   onClick={() => navigate(`/course/details/${courseItem._id}`)}
-                  className="border border-border rounded-2xl overflow-hidden shadow-sm cursor-pointer flex flex-col md:flex-row gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-card group"
+                  className="border border-border rounded-2xl overflow-hidden shadow-sm cursor-pointer flex flex-col md:flex-row gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-card group relative"
                 >
+                  <Button
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-4 right-4 bg-white/70 hover:bg-white text-muted-foreground hover:text-red-500 rounded-full z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleWishlist(courseItem._id);
+                    }}
+                  >
+                    <Heart className="h-5 w-5" />
+                  </Button>
                   <div className="overflow-hidden md:w-72 shrink-0">
                     <img
                       src={courseItem.image}

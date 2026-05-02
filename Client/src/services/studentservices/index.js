@@ -76,8 +76,48 @@ export async function resetCourseProgressService(userId, courseId) {
 
   return data;
 }
+export async function addNoteService(noteData) {
+  const { data } = await axiosInstance.post(`/student/course-note/add`, noteData);
+  return data;
+}
 
 
+// ── Wishlist API ───────────────────────────────────────────────────────────
+export async function toggleWishlistService(userId, courseId) {
+  const { data } = await axiosInstance.post(`/student/wishlist/toggle`, { userId, courseId });
+  return data;
+}
 
+export async function getWishlistService(userId) {
+  const { data } = await axiosInstance.get(`/student/wishlist/${userId}`);
+  return data;
+}
 
+// ── Reviews API ────────────────────────────────────────────────────────────
+export async function addReviewService(userId, userName, courseId, rating, reviewMessage) {
+  const { data } = await axiosInstance.post(`/student/review/add`, {
+    userId,
+    userName,
+    courseId,
+    rating,
+    reviewMessage
+  });
+  return data;
+}
+
+export async function getCourseReviewsService(courseId) {
+  const { data } = await axiosInstance.get(`/student/review/${courseId}`);
+  return data;
+}
+
+export async function getNotesService(userId, courseId, lectureId) {
+  const { data } = await axiosInstance.get(`/student/course-note/${userId}/${courseId}/${lectureId}`);
+  return data;
+}
+
+export async function deleteNoteService(noteId, userId) {
+  // Use data payload for DELETE requests in axios
+  const { data } = await axiosInstance.delete(`/student/course-note/${noteId}`, { data: { userId } });
+  return data;
+}
 

@@ -12,6 +12,7 @@ import PaypalPaymentReturnPage from "./pages/student/payment-return/payment-succ
 import PaymentFailedPage from "./pages/student/payment-return/payment-failed";
 import StudentCoursePage from "./pages/student/student-courses/index";
 import StudentViewCourseProgressPage from "./pages/student/course-progress";
+import StudentWishlistPage from "./pages/student/student-wishlist";
 
 function App() {
   return (
@@ -37,6 +38,10 @@ function App() {
         <Route
           path="/student/my-courses"
           element={<RouteGuard element={<StudentCoursePage />} />}
+        />
+        <Route
+          path="/student/wishlist"
+          element={<RouteGuard element={<StudentWishlistPage />} />}
         />
         <Route
           path="/student/my-courses/progress/:id"

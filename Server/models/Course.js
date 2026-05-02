@@ -2,9 +2,21 @@ const mongoose = require("mongoose");
 
 const curriculamSchema = new mongoose.Schema({
   title: String,
+  type: {
+    type: String,
+    enum: ["video", "quiz"],
+    default: "video"
+  },
   videoUrl: String,
   freePreview: Boolean,
   public_id: String,
+  questions: [
+    {
+      question: String,
+      options: [String],
+      correctAnswerIndex: Number
+    }
+  ]
 });
 
 const courseSchema = new mongoose.Schema({

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { BarChart, Book, LogOut } from "lucide-react";
+import { BarChart, Book, LogOut, MessageCircle } from "lucide-react";
 import useAuthStore from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import InstructorDashboard from "@/components/instructor-view/dashboard/index";
 import InstructorCourses from "../../components/instructor-view/courses/index";
+import InstructorChats from "@/components/instructor-view/chats/index";
 import useInstructorStore from "@/store/useInstructorStore";
 import { fetchInstructorCourseListService } from "@/services/mediahandle";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -44,6 +45,12 @@ function InstructorDashboardPage() {
       label: "Courses",
       value: "courses",
       component: <InstructorCourses listOfCourses={instructorCoursesList} />,
+    },
+    {
+      icon: MessageCircle,
+      label: "Live Chats",
+      value: "chats",
+      component: <InstructorChats listOfCourses={instructorCoursesList} />,
     },
     {
       icon: LogOut,

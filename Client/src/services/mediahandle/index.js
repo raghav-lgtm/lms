@@ -30,7 +30,7 @@ export async function addNewCourseService(formData) {
 }
 
 export async function fetchInstructorCourseDetailsService(id) {
-  const res = await axiosInstance.get(`/instructor/course/getAllCourses/${id}`);
+  const res = await axiosInstance.get(`/instructor/course/getCourse/${id}`);
   return res.data;
 }
 
@@ -49,4 +49,23 @@ export async function deleteCourseById(id) {
   return res.data;
 }
 
+export async function createCourseRoomService(courseId, courseTitle) {
+  const res = await axiosInstance.post("/rooms/create", {
+    courseId,
+    courseTitle,
+  });
+  return res.data;
+}
+
+export async function getRoomByCourseIdService(courseId) {
+  const res = await axiosInstance.get(`/rooms/course/${courseId}`);
+  return res.data;
+}
+
+export async function generateQuizService(contextText) {
+  const res = await axiosInstance.post("/instructor/course/generate-quiz", {
+    context: contextText,
+  });
+  return res.data;
+}
 
