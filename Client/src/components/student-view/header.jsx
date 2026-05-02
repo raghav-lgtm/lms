@@ -1,4 +1,4 @@
-import { GraduationCap, TvMinimalPlay } from "lucide-react";
+import { GraduationCap, TvMinimalPlay, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import useAuthStore from "@/store/useAuthStore";
@@ -39,13 +39,23 @@ function StudentViewCommonHeader() {
       <div className="flex items-center space-x-4">
         <div className="flex gap-4 items-center">
           <div
-            onClick={() => navigate("/student/my-courses")}
-            className="flex cursor-pointer items-center gap-3 hover:text-primary transition-colors"
+            onClick={() => navigate("/student/wishlist")}
+            className="flex cursor-pointer items-center gap-1 hover:text-red-500 transition-colors mr-2"
           >
-            <span className="font-extrabold md:text-xl text-[14px]">
+            <Heart className="w-5 h-5" />
+            <span className="font-extrabold md:text-sm text-[12px]">
+              Wishlist
+            </span>
+          </div>
+          
+          <div
+            onClick={() => navigate("/student/my-courses")}
+            className="flex cursor-pointer items-center gap-2 hover:text-primary transition-colors"
+          >
+            <span className="font-extrabold md:text-sm text-[12px]">
               My Courses
             </span>
-            <TvMinimalPlay className="w-8 h-8 cursor-pointer" />
+            <TvMinimalPlay className="w-6 h-6 cursor-pointer" />
           </div>
           <ThemeToggle />
           <Button onClick={handleLogout}>Sign Out</Button>

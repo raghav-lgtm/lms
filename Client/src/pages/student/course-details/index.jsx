@@ -7,7 +7,8 @@ import { PlayCircle, Lock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import VideoPlayer from "@/components/instructor-view/video-player";
 import useAuthStore from "@/store/useAuthStore";
-import { createPaymentService } from "@/services/studentservices/index";
+import { createPaymentService, getCourseReviewsService } from "@/services/studentservices/index";
+import { Star } from "lucide-react";
 
 function StudentCourseDetailsPage() {
   const { courseId } = useParams();
@@ -21,6 +22,7 @@ function StudentCourseDetailsPage() {
 
   const [activePreviewIndex, setActivePreviewIndex] = useState(null);
   const [approvalUrl, setApprovalUrl] = useState(null);
+  const [reviewsData, setReviewsData] = useState(null);
 
   const curriculam = studentViewCourseDetails?.curriculam;
   const { user } = useAuthStore();
@@ -40,6 +42,8 @@ function StudentCourseDetailsPage() {
         setLoadingState(true);
         const res = await fetchStudentViewCourseDetailsService(courseId);
         if (res?.success) setStudentViewCourseDetails(res.data);
+        const reviewRes = await getCourseReviewsService(courseId);
+        if (reviewRes?.success) setReviewsData(reviewRes.data);
       } catch (error) {
         console.error("Failed to fetch course details:", error);
       } finally {
@@ -171,11 +175,17 @@ function StudentCourseDetailsPage() {
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold mb-3">{title}</h1>
           <p className="text-gray-300 text-lg mb-4">{subtitle}</p>
-          <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
             <span>{instructor_name}</span>
             <span>{primaryLanguage}</span>
             <span>{level}</span>
             <span>{students?.length ?? 0} students enrolled</span>
+            {reviewsData?.totalReviews > 0 && (
+              <span className="flex items-center gap-1 text-yellow-400 font-bold">
+                <Star className="h-4 w-4 fill-current" />
+                {reviewsData.averageRating} ({reviewsData.totalReviews} ratings)
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -252,6 +262,44 @@ function StudentCourseDetailsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Student Reviews</h2>
+            {!reviewsData || reviewsData.totalReviews === 0 ? (
+              <p className="text-muted-foreground">No reviews yet for this course. Be the first to try it out!</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-6 border-b pb-4 dark:border-gray-800">
+                  <span className="text-4xl font-black text-yellow-500">{reviewsData.averageRating}</span>
+                  <div className="flex flex-col">
+                    <div className="flex text-yellow-500">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 ${i < Math.round(reviewsData.averageRating) ? 'fill-current' : 'text-gray-300 dark:text-gray-700'}`} />
+                      ))}
+                    </div>
+                    <span className="text-sm text-muted-foreground">{reviewsData.totalReviews} course ratings</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {reviewsData.reviews.map((r, i) => (
+                    <div key={i} className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-bold">{r.userName || "Anonymous Student"}</div>
+                        <div className="flex text-yellow-500">
+                          {[...Array(5)].map((_, idx) => (
+                            <Star key={Math.random()} className={`h-3 w-3 ${idx < r.rating ? 'fill-current' : 'text-gray-300 dark:text-gray-700'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{r.reviewMessage}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{new Date(r.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

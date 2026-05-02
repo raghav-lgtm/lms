@@ -1,11 +1,30 @@
 const Course = require("../../models/Course.js");
 const { deleteMediaFromCloudinary } = require("../../helper/cloudinary.js");
+const redisClient = require("../../config/redis");
+
+const invalidateCache = async (courseId = null) => {
+  try {
+    const keys = await redisClient.keys("courses:student:*");
+    if (keys.length > 0) {
+      await redisClient.del(keys);
+    }
+    if (courseId) {
+      await redisClient.del(`course:details:${courseId}`);
+    }
+    console.log(`Cache invalidated for courses${courseId ? ` and course details ${courseId}` : ''}`);
+  } catch (err) {
+    console.error("Redis invalidation error:", err);
+  }
+};
 
 const addCourse = async (req, res) => {
   try {
     const courseDetails = req.body;
     const newCourse = new Course(courseDetails);
     const savedCourse = await newCourse.save();
+
+    await invalidateCache();
+
     res.status(201).json({
       success: true,
       message: "Course successfully added",
@@ -73,6 +92,9 @@ const updateCourseById = async (req, res) => {
         message: "Course not found",
       });
     }
+
+    await invalidateCache(id);
+
     res.status(200).json({
       success: true,
       message: "Course updated successfully",
@@ -113,6 +135,8 @@ const deleteCourseById = async (req, res) => {
     }
 
     await Course.findByIdAndDelete(id);
+
+    await invalidateCache(id);
 
     res.status(200).json({
       success: true,

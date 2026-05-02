@@ -12,6 +12,7 @@ import {
   addNewCourseService,
   updateCourseById,
   fetchInstructorCourseDetailsService,
+  createCourseRoomService,
 } from "@/services/mediahandle";
 import { courseCurriculumInitialFormData } from "@/config";
 
@@ -37,6 +38,7 @@ function AddNewCourse() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
 
+  // ── load course data in edit mode ──────────────────────────────────────────
   useEffect(() => {
     if (!isEditMode || !courseId) return;
 
@@ -64,12 +66,14 @@ function AddNewCourse() {
           setCourseCurriculamFormData(
             data.curriculam?.length
               ? data.curriculam.map((item) => ({
-                  title: item.title || "",
-                  videoUrl: item.videoUrl || "",
-                  freePreview: item.freePreview || false,
-                  public_id: item.public_id || "",
-                }))
-              : courseCurriculumInitialFormData,
+                title: item.title || "",
+                type: item.type || "video",
+                videoUrl: item.videoUrl || "",
+                freePreview: item.freePreview || false,
+                public_id: item.public_id || "",
+                questions: item.questions || [],
+              }))
+              : courseCurriculumInitialFormData
           );
         }
       } catch (error) {
@@ -82,9 +86,10 @@ function AddNewCourse() {
     loadCourse();
   }, [courseId, isEditMode]);
 
+  // ── validation ─────────────────────────────────────────────────────────────
   const isValid = useMemo(() => {
     const landingValid = Object.values(courseLandingInitials || {}).every(
-      (value) => !isEmpty(value),
+      (value) => !isEmpty(value)
     );
     if (!landingValid) return false;
 
@@ -96,18 +101,23 @@ function AddNewCourse() {
 
     let hasFreePreview = false;
     for (const item of courseCurriculamFormData) {
-      if (
-        isEmpty(item.title) ||
-        isEmpty(item.videoUrl) ||
-        isEmpty(item.public_id)
-      )
-        return false;
+      if (item.type === "quiz") {
+        if (isEmpty(item.title) || !item.questions || item.questions.length === 0) return false;
+      } else {
+        if (
+          isEmpty(item.title) ||
+          isEmpty(item.videoUrl) ||
+          isEmpty(item.public_id)
+        )
+          return false;
+      }
       if (item.freePreview) hasFreePreview = true;
     }
 
     return hasFreePreview;
   }, [courseLandingInitials, courseCurriculamFormData]);
 
+  // ── submit ─────────────────────────────────────────────────────────────────
   async function handleSubmit() {
     try {
       setSubmitLoading(true);
@@ -128,6 +138,26 @@ function AddNewCourse() {
           : await addNewCourseService(courseData);
 
       if (response?.success) {
+        // ── create a chat room only when a NEW course is published ──────────
+        if (!isEditMode) {
+          const newCourseId = response.data?._id;
+
+          if (newCourseId) {
+            const roomResponse = await createCourseRoomService(
+              newCourseId,
+              courseLandingInitials.title
+            );
+
+            if (!roomResponse?.success) {
+              console.warn("Room creation failed:", roomResponse?.message);
+            }
+          } else {
+            console.warn(
+              "Course created but _id missing in response — room not created."
+            );
+          }
+        }
+
         resetCourseCreationState();
         navigate(-1);
       }
@@ -138,6 +168,7 @@ function AddNewCourse() {
     }
   }
 
+  // ── render ─────────────────────────────────────────────────────────────────
   if (fetchLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -158,7 +189,11 @@ function AddNewCourse() {
           disabled={!isValid || submitLoading}
           onClick={handleSubmit}
         >
-          {submitLoading ? "Please wait..." : isEditMode ? "UPDATE" : "SUBMIT"}
+          {submitLoading
+            ? "Please wait..."
+            : isEditMode
+              ? "UPDATE"
+              : "SUBMIT"}
         </Button>
       </div>
 
